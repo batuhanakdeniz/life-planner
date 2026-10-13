@@ -72,11 +72,36 @@ public class LifePlannerApp extends Application {
 					this::toggleOnTop, this::openReminderSettings, this::quit), Settings.alwaysOnTop());
 		}
 		reminders.start();
+		setDockIcon();
 		stage.show();
 
 		var snapshotDir = System.getProperty("lifeplanner.snapshot");
 		if (snapshotDir != null) {
 			takeSnapshots(new File(snapshotDir));
+		}
+	}
+
+	/**
+	 * macOS Dock ikonu. Uygulama bir .app paketi olarak değil düz Java süreci olarak çalıştığında
+	 * varsayılan Java ikonu görünür; Taskbar API ile logo atanır. Desteklenmeyen ortamlarda sessizce geçilir.
+	 */
+	private void setDockIcon() {
+		try {
+			if (!java.awt.Taskbar.isTaskbarSupported()) {
+				return;
+			}
+			var taskbar = java.awt.Taskbar.getTaskbar();
+			if (!taskbar.isSupported(java.awt.Taskbar.Feature.ICON_IMAGE)) {
+				return;
+			}
+			try (var in = getClass().getResourceAsStream("app-icon.png")) {
+				if (in != null) {
+					taskbar.setIconImage(javax.imageio.ImageIO.read(in));
+				}
+			}
+		}
+		catch (Exception e) {
+			System.err.println("Dock ikonu ayarlanamadı: " + e.getMessage());
 		}
 	}
 
