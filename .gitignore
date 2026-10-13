@@ -37,3 +37,6 @@ build/
 
 ### Claude Code yerel ayarları ###
 .claude/
+
+### Yerel MCP ayarı (kullanıcıya özgü yollar içerir) ###
+.mcp.json
