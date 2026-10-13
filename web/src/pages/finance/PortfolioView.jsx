@@ -3,7 +3,7 @@ import { api } from '../../api.js'
 import Donut from '../../components/Donut.jsx'
 import {
   ASSET_COLOR, ASSET_ICON, ASSET_PRESETS, ASSET_TYPE, currencySymbol, fmtMoney, fmtMoney0, fmtNum, fmtPct,
-  fmtSigned, parseNum, pnlClass,
+  fmtSigned, isStale, parseNum, pnlClass, PRICE_SOURCE, timeAgo,
 } from '../../money.js'
 
 export default function PortfolioView() {
@@ -11,13 +11,21 @@ export default function PortfolioView() {
   const [assets, setAssets] = useState([])
   const [rates, setRates] = useState([])
   const [showForm, setShowForm] = useState(false)
+  const [status, setStatus] = useState(null)
+  const [refreshing, setRefreshing] = useState(false)
+  const [editingSource, setEditingSource] = useState(null)
   const [error, setError] = useState(null)
 
   const load = useCallback(() => {
-    Promise.all([api.portfolio(), api.assets(), api.rates()])
-      .then(([p, a, r]) => { setData(p); setAssets(a); setRates(r) })
+    Promise.all([api.portfolio(), api.assets(), api.rates(), api.priceStatus()])
+      .then(([p, a, r, st]) => { setData(p); setAssets(a); setRates(r); setStatus(st) })
       .catch((e) => setError(e.message))
   }, [])
+
+  const refreshPrices = () => {
+    setRefreshing(true)
+    api.refreshPrices().then(load).catch((e) => setError(e.message)).finally(() => setRefreshing(false))
+  }
   useEffect(load, [load])
 
   const run = (fn) => fn().then(load).catch((e) => setError(e.message))
@@ -33,6 +41,8 @@ export default function PortfolioView() {
   return (
     <>
       {error && <div className="error" onClick={() => setError(null)}>{error}</div>}
+
+      <PriceStatusBar status={status} refreshing={refreshing} onRefresh={refreshPrices} />
 
       <div className="stats fin-stats">
         <div className="card stat">
@@ -102,7 +112,12 @@ export default function PortfolioView() {
                       <td className="num">{fmtNum(h.quantity)} <span className="muted">{h.unit}</span></td>
                       <td className="num">{fmtMoney(h.avgCost, h.priceCurrency)}</td>
                       <td className="num">
-                        <PriceCell holding={h} asset={assets.find((a) => a.id === h.assetId)} onSave={(v) => run(() => api.setAssetPrice(h.assetId, v))} />
+                        <PriceCell holding={h} onSave={(v) => run(() => api.setAssetPrice(h.assetId, v))} />
+                        <SourceTag holding={h} onClick={() => setEditingSource(editingSource === h.assetId ? null : h.assetId)} />
+                        {editingSource === h.assetId && (
+                          <SourceEditor asset={assets.find((a) => a.id === h.assetId)} onCancel={() => setEditingSource(null)}
+                            onSave={(src, sym) => run(() => api.setAssetSource(h.assetId, src, sym)).then(() => { setEditingSource(null); refreshPrices() })} />
+                        )}
                       </td>
                       <td className="num">{fmtMoney0(h.valueTry)}<div className="muted">{fmtMoney0(h.valueUsd, 'USD')}</div></td>
                       <td className="num">
@@ -173,7 +188,7 @@ function RateEditor({ currency, rate, fallback, onSave }) {
     <div className="row rate-row" onClick={start} title="Düzenlemek için tıkla">
       <span className="muted">{currency}/TRY</span>
       <div className="spacer" />
-      {rate ? <strong>{fmtNum(rate.rateTry)}</strong>
+      {rate ? <strong title={`TCMB döviz alış · ${timeAgo(rate.updatedAt)}`}>{fmtNum(rate.rateTry)}</strong>
         : fallback ? <span className="tag overdue" title="Kur girilmemiş; son işlemdeki kur kullanılıyor">{fmtNum(fallback)} ?</span>
           : <span className="tag overdue">gir</span>}
       <span className="edit-hint">✎</span>
@@ -181,11 +196,12 @@ function RateEditor({ currency, rate, fallback, onSave }) {
   )
 }
 
-function PriceCell({ holding: h, asset, onSave }) {
+function PriceCell({ holding: h, onSave }) {
   const [editing, setEditing] = useState(false)
   const [value, setValue] = useState('')
-  if (asset?.priceFromRate) {
-    return <span title="Döviz varlıklarının fiyatı kurdan gelir">{fmtMoney(h.price, h.priceCurrency)}<div className="muted">kurdan</div></span>
+  // Otomatik kaynaklı fiyatlar elle değiştirilmez; bir sonraki güncellemede üzerine yazılırdı
+  if (h.priceSource && h.priceSource !== 'MANUAL') {
+    return <span>{fmtMoney(h.price, h.priceCurrency)}</span>
   }
   const save = (e) => {
     e.preventDefault()
@@ -207,6 +223,60 @@ function PriceCell({ holding: h, asset, onSave }) {
       {fmtMoney(h.price, h.priceCurrency)} <span className="edit-hint">✎</span>
       {h.priceIsFallback && <div className="tag overdue" title="Güncel fiyat girilmemiş; son işlem fiyatı kullanılıyor">son işlem fiyatı</div>}
     </button>
+  )
+}
+
+function SourceTag({ holding: h, onClick }) {
+  const src = h.priceSource ?? 'MANUAL'
+  const stale = src !== 'MANUAL' && isStale(h.priceUpdatedAt)
+  const cls = h.priceError ? 'tag sell' : stale ? 'tag overdue' : 'tag'
+  const title = h.priceError ? `Son güncelleme başarısız: ${h.priceError}` : 'Fiyat kaynağını değiştirmek için tıkla'
+  return (
+    <div>
+      <button className={`source-tag ${cls}`} onClick={onClick} title={title}>
+        {h.priceError ? '⚠ ' : ''}{PRICE_SOURCE[src]}{src !== 'MANUAL' && h.priceUpdatedAt ? ` · ${timeAgo(h.priceUpdatedAt)}` : ''}
+      </button>
+    </div>
+  )
+}
+
+function SourceEditor({ asset, onSave, onCancel }) {
+  const [source, setSource] = useState(asset?.priceSource ?? 'MANUAL')
+  const [symbol, setSymbol] = useState(asset?.sourceSymbol ?? '')
+  const needsSymbol = source === 'TRUNCGIL' || source === 'YAHOO'
+  const hint = source === 'TRUNCGIL' ? 'gram-altin, ceyrek-altin, gumus, ons…' : source === 'YAHOO' ? 'THYAO.IS, AAPL…' : ''
+  return (
+    <form className="source-editor" onSubmit={(e) => { e.preventDefault(); onSave(source, needsSymbol ? symbol.trim() : null) }}>
+      <select value={source} onChange={(e) => setSource(e.target.value)}>
+        <option value="MANUAL">Elle</option>
+        <option value="TRUNCGIL">Truncgil (altın)</option>
+        <option value="YAHOO">Yahoo (hisse)</option>
+        {asset?.type === 'CURRENCY' && <option value="RATE">TCMB kuru</option>}
+      </select>
+      {needsSymbol && <input value={symbol} onChange={(e) => setSymbol(e.target.value)} placeholder={hint} />}
+      <div className="row">
+        <button className="btn primary">Kaydet</button>
+        <button type="button" className="btn" onClick={onCancel}>Vazgeç</button>
+      </div>
+    </form>
+  )
+}
+
+function PriceStatusBar({ status, refreshing, onRefresh }) {
+  const failed = status ? Object.entries(status.sources).filter(([, v]) => v !== 'ok') : []
+  return (
+    <div className="price-status">
+      <span className="muted">
+        {status
+          ? <>Fiyatlar otomatik güncelleniyor · son: {timeAgo(status.finishedAt)} ·{' '}
+            {Object.entries(status.sources).map(([k, v]) => (
+              <span key={k} className={v === 'ok' ? 'pos' : 'neg'} title={v === 'ok' ? 'Başarılı' : v}> {k} {v === 'ok' ? '✓' : '✗'}</span>
+            ))}</>
+          : 'Fiyatlar henüz güncellenmedi'}
+      </span>
+      <button className="btn" onClick={onRefresh} disabled={refreshing}>{refreshing ? 'Güncelleniyor…' : '↻ Güncelle'}</button>
+      {failed.length > 0 && <div className="warn small" style={{ width: '100%' }}>{failed.map(([k, v]) => `${k}: ${v}`).join(' · ')}</div>}
+    </div>
   )
 }
 
@@ -242,6 +312,7 @@ export function AssetForm({ onSave, onCancel }) {
         </label>
         <input placeholder="Birim (gr, lot, adet)" value={form.unit ?? ''} onChange={set('unit')} style={{ width: 160 }} />
       </div>
+      <p className="muted" style={{ margin: 0 }}>Fiyat kaynağı otomatik seçilir: altın → Truncgil, hisse → Yahoo (BIST için ".IS"), USD/EUR → TCMB, fon → elle. Sonradan tablodaki kaynak etiketine tıklayıp değiştirebilirsin.</p>
       <div className="row">
         <button className="btn primary">Kaydet</button>
         <button type="button" className="btn" onClick={onCancel}>Vazgeç</button>

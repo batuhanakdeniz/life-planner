@@ -58,3 +58,19 @@ export const ASSET_PRESETS = [
   { symbol: '', name: '', type: 'STOCK', priceCurrency: 'USD', unit: 'adet', label: 'ABD hissesi' },
   { symbol: '', name: '', type: 'FUND', priceCurrency: 'TRY', unit: 'pay', label: 'Yatırım fonu' },
 ]
+
+export const PRICE_SOURCE = { RATE: 'TCMB', TRUNCGIL: 'Truncgil', YAHOO: 'Yahoo', MANUAL: 'Elle' }
+
+/** "3 dk önce", "2 sa önce", "4 gün önce" */
+export const timeAgo = (iso) => {
+  if (!iso) return null
+  const min = Math.round((Date.now() - new Date(iso).getTime()) / 60000)
+  if (min < 1) return 'az önce'
+  if (min < 60) return `${min} dk önce`
+  const h = Math.round(min / 60)
+  if (h < 48) return `${h} sa önce`
+  return `${Math.round(h / 24)} gün önce`
+}
+
+/** Otomatik kaynaklı fiyat 26 saattir güncellenmediyse bayat sayılır (hafta sonu TCMB/BIST yayın yapmaz). */
+export const isStale = (iso) => iso && Date.now() - new Date(iso).getTime() > 26 * 3600 * 1000

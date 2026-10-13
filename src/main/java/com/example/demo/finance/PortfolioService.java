@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.common.NotFoundException;
 import com.example.demo.finance.FinanceDtos.*;
+import com.example.demo.finance.market.PriceSource;
+import com.example.demo.finance.market.PriceSourceDefaults;
 
 import lombok.RequiredArgsConstructor;
 
@@ -65,6 +67,64 @@ public class PortfolioService {
 		return toResponse(asset);
 	}
 
+	public AssetResponse updateSource(Long id, PriceSource source, String sourceSymbol) {
+		var asset = getAsset(id);
+		setSource(asset, source, sourceSymbol);
+		return toResponse(asset);
+	}
+
+	private static void setSource(Asset asset, PriceSource source, String sourceSymbol) {
+		if ((source == PriceSource.TRUNCGIL || source == PriceSource.YAHOO) && (sourceSymbol == null || sourceSymbol.isBlank())) {
+			throw new IllegalArgumentException(source + " kaynağı için kaynak sembolü gerekli (ör. gram-altin, THYAO.IS)");
+		}
+		asset.setPriceSource(source);
+		asset.setSourceSymbol(sourceSymbol != null && !sourceSymbol.isBlank() ? sourceSymbol.trim() : null);
+		asset.setPriceError(null);
+	}
+
+	/** Eski kayıtlara (kaynak alanı eklenmeden önce oluşturulmuş) önerilen kaynağı atar. */
+	public int assignMissingSources() {
+		int n = 0;
+		for (var a : assets.findAll()) {
+			if (a.getPriceSource() == null) {
+				var s = PriceSourceDefaults.suggest(a.getSymbol(), a.getType(), a.getPriceCurrency());
+				setSource(a, s.source(), s.sourceSymbol());
+				n++;
+			}
+		}
+		return n;
+	}
+
+	/** Otomatik güncellemeden gelen fiyat. */
+	public void applyMarketPrice(Long assetId, BigDecimal price) {
+		var asset = getAsset(assetId);
+		asset.setCurrentPrice(price);
+		asset.setPriceUpdatedAt(Instant.now());
+		asset.setPriceError(null);
+	}
+
+	public void markPriceError(Long assetId, String error) {
+		getAsset(assetId).setPriceError(error.length() > 300 ? error.substring(0, 300) : error);
+	}
+
+	@Transactional(readOnly = true)
+	public List<Asset> assetsWithSource(PriceSource source) {
+		return assets.findAll().stream().filter(a -> a.getPriceSource() == source).toList();
+	}
+
+	@Transactional(readOnly = true)
+	public List<Trade> estimatedTrades() {
+		return trades.findByRateEstimatedTrue();
+	}
+
+	/** Tahmini kuru, işlem gününün gerçek TCMB kuruyla değiştirir. */
+	public void fixEstimatedRate(Long tradeId, BigDecimal rate) {
+		trades.findById(tradeId).ifPresent(t -> {
+			t.setUsdTryRate(rate);
+			t.setRateEstimated(false);
+		});
+	}
+
 	public void deleteAsset(Long id) {
 		if (trades.existsByAssetId(id)) {
 			throw new IllegalArgumentException("Bu varlığa ait işlemler var; önce işlemleri silmelisin");
@@ -81,6 +141,13 @@ public class PortfolioService {
 		asset.setType(req.type());
 		asset.setPriceCurrency(req.priceCurrency());
 		asset.setUnit(req.unit());
+		if (req.priceSource() != null) {
+			setSource(asset, req.priceSource(), req.sourceSymbol());
+		}
+		else if (asset.getPriceSource() == null) {
+			var s = PriceSourceDefaults.suggest(asset.getSymbol(), asset.getType(), asset.getPriceCurrency());
+			setSource(asset, s.source(), s.sourceSymbol());
+		}
 		if (req.currentPrice() != null && !req.currentPrice().equals(asset.getCurrentPrice())) {
 			asset.setCurrentPrice(req.currentPrice());
 			asset.setPriceUpdatedAt(Instant.now());
@@ -92,7 +159,17 @@ public class PortfolioService {
 		rates.findAll().forEach(r -> rateMap.put(r.getCurrency(), r.getRateTry()));
 		var fromRate = currentPrice(a, rateMap) != a.getCurrentPrice();
 		return new AssetResponse(a.getId(), a.getSymbol(), a.getName(), a.getType(), a.getPriceCurrency(), a.getUnit(),
-				currentPrice(a, rateMap), a.getPriceUpdatedAt(), fromRate, trades.existsByAssetId(a.getId()));
+				currentPrice(a, rateMap), fromRate ? rateUpdatedAt(a) : a.getPriceUpdatedAt(), fromRate, trades.existsByAssetId(a.getId()),
+				a.getPriceSource(), a.getSourceSymbol(), a.getPriceError());
+	}
+
+	private Instant rateUpdatedAt(Asset a) {
+		try {
+			return rates.findById(Currency.valueOf(a.getSymbol())).map(ExchangeRate::getUpdatedAt).orElse(null);
+		}
+		catch (IllegalArgumentException e) {
+			return null;
+		}
 	}
 
 	private Asset getAsset(Long id) {
@@ -212,7 +289,11 @@ public class PortfolioService {
 				.orElseGet(() -> all.isEmpty() ? null : all.get(0).getUsdTryRate());
 
 		Map<Currency, BigDecimal> rateMap = new EnumMap<>(Currency.class);
-		rates.findAll().forEach(r -> rateMap.put(r.getCurrency(), r.getRateTry()));
+		Map<Currency, Instant> rateTimes = new EnumMap<>(Currency.class);
+		rates.findAll().forEach(r -> {
+			rateMap.put(r.getCurrency(), r.getRateTry());
+			rateTimes.put(r.getCurrency(), r.getUpdatedAt());
+		});
 		if (usdTry != null) {
 			rateMap.putIfAbsent(Currency.USD, usdTry);
 		}
@@ -224,7 +305,7 @@ public class PortfolioService {
 			var list = entry.getValue().stream()
 					.sorted(Comparator.comparing(Trade::getDate).thenComparing(t -> t.getSide() == TradeSide.SELL).thenComparing(Trade::getId))
 					.toList();
-			holdings.add(holding(asset, PortfolioCalculator.position(asset.getPriceCurrency(), list), usdTry, rateMap));
+			holdings.add(holding(asset, PortfolioCalculator.position(asset.getPriceCurrency(), list), usdTry, rateMap, rateTimes));
 		}
 
 		var open = holdings.stream().filter(h -> !h.closed()).toList();
@@ -250,7 +331,7 @@ public class PortfolioService {
 
 		var withWeights = holdings.stream()
 				.map(h -> new Holding(h.assetId(), h.symbol(), h.name(), h.type(), h.priceCurrency(), h.unit(), h.quantity(),
-						h.avgCost(), h.price(), h.priceIsFallback(), h.costTry(), h.costUsd(), h.valueTry(), h.valueUsd(),
+						h.avgCost(), h.price(), h.priceIsFallback(), h.priceSource(), h.priceUpdatedAt(), h.priceError(), h.costTry(), h.costUsd(), h.valueTry(), h.valueUsd(),
 						h.unrealizedTry(), h.unrealizedUsd(), h.unrealizedPctTry(), h.unrealizedPctUsd(),
 						h.realizedTry(), h.realizedUsd(), h.closed() ? null : percent(h.valueTry(), valueTry), h.closed()))
 				.sorted(Comparator.comparing(Holding::closed).thenComparing(Holding::valueTry, Comparator.reverseOrder()))
@@ -275,9 +356,12 @@ public class PortfolioService {
 		return a.getCurrentPrice();
 	}
 
-	private static Holding holding(Asset a, PortfolioCalculator.Position p, BigDecimal usdTry, Map<Currency, BigDecimal> rates) {
+	private static Holding holding(Asset a, PortfolioCalculator.Position p, BigDecimal usdTry, Map<Currency, BigDecimal> rates,
+			Map<Currency, Instant> rateTimes) {
 		boolean closed = p.quantity().signum() == 0;
 		var current = currentPrice(a, rates);
+		var updatedAt = current != null && current != a.getCurrentPrice()
+				? rateTimes.get(Currency.valueOf(a.getSymbol().toUpperCase(java.util.Locale.ROOT))) : a.getPriceUpdatedAt();
 		boolean fallback = current == null;
 		var price = fallback ? p.lastPrice() : current;
 		var value = PortfolioCalculator.prices(a.getPriceCurrency(), price, usdTry);
@@ -289,7 +373,7 @@ public class PortfolioService {
 		var unrealizedTry = valueTry.subtract(p.costTry());
 		var unrealizedUsd = valueUsd.subtract(p.costUsd());
 		return new Holding(a.getId(), a.getSymbol(), a.getName(), a.getType(), a.getPriceCurrency(), a.getUnit(),
-				plain(p.quantity()), avgCost, price, fallback,
+				plain(p.quantity()), avgCost, price, fallback, a.getPriceSource(), updatedAt, a.getPriceError(),
 				money(p.costTry()), money(p.costUsd()), money(valueTry), money(valueUsd),
 				money(unrealizedTry), money(unrealizedUsd),
 				percent(unrealizedTry, p.costTry()), percent(unrealizedUsd, p.costUsd()),

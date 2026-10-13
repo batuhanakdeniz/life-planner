@@ -95,6 +95,15 @@ public class ApiClient {
 	public void createAsset(Map<String, Object> asset) { send("POST", "/finance/assets", asset, null); }
 	public void setAssetPrice(long id, java.math.BigDecimal price) { send("PUT", "/finance/assets/" + id + "/price", body("price", price), null); }
 	public void deleteAsset(long id) { send("DELETE", "/finance/assets/" + id, null, null); }
+	public void setAssetSource(long id, String source, String sourceSymbol) {
+		send("PUT", "/finance/assets/" + id + "/source", body("priceSource", source, "sourceSymbol", sourceSymbol), null);
+	}
+	public Models.PriceStatus priceStatus() { return send("GET", "/finance/prices/status", null, new TypeReference<Models.PriceStatus>() { }); }
+	public Models.PriceStatus refreshPrices() { return send("POST", "/finance/prices/refresh", null, new TypeReference<Models.PriceStatus>() { }); }
+	/** O günün TCMB USD kuru; bulunamazsa null. */
+	public Models.HistoricalRate historicalRate(LocalDate date) {
+		return send("GET", "/finance/rates/history?date=" + date, null, new TypeReference<Models.HistoricalRate>() { });
+	}
 	public List<Models.Trade> trades(Long assetId) {
 		return send("GET", "/finance/trades" + (assetId != null ? "?assetId=" + assetId : ""), null, new TypeReference<List<Models.Trade>>() { });
 	}
@@ -125,7 +134,7 @@ public class ApiClient {
 				req.method(method, BodyPublishers.noBody());
 			}
 			var res = http.send(req.build(), BodyHandlers.ofString());
-			if (res.statusCode() == 204) {
+			if (res.statusCode() == 204 || (res.statusCode() == 404 && path.startsWith("/finance/rates/history"))) {
 				return null;
 			}
 			if (res.statusCode() >= 400) {

@@ -313,3 +313,10 @@ td.streak { text-align: center; }
 .pay-btn:hover { background: rgba(74, 222, 128, .12); }
 .due-card { border-color: color-mix(in srgb, var(--warn) 40%, var(--border)); }
 .item.done .pay-btn { display: none; }
+
+/* --- Otomatik fiyatlar --- */
+.price-status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; justify-content: space-between; margin-bottom: 14px; font-size: 13px; }
+.source-tag { border: 0; cursor: pointer; margin-top: 4px; font-size: 11px; }
+.source-tag:hover { outline: 1px solid var(--accent); }
+.source-editor { display: grid; gap: 6px; margin-top: 8px; justify-items: end; }
+.source-editor input, .source-editor select { width: 180px; font-size: 13px; padding: 5px 8px; }

@@ -60,7 +60,20 @@ Masaüstü uygulamasının API adresi için `LIFEPLANNER_API` kullanılır (vars
 - **Çift para birimi.** Her işlem kendi günündeki USD/TRY kuruyla hem TL hem $ maliyet olarak tutulur. Böylece "TL'de kazandım ama dolar bazında kazanmadım" durumu görünür.
 - **Güncel değer.** Elle girilen fiyat kullanılır, o yoksa son işlem fiyatı ("son işlem fiyatı" etiketiyle). USD/EUR varlıkları doğrudan kurdan fiyatlanır.
 - **Sayı girişi Türkçedir.** `6.250,50` = altı bin iki yüz elli virgül elli. Nokta binlik ayırıcıdır.
-- **Anlık fiyatlar için hazırlık.** Fiyatlar `PUT /api/finance/assets/{id}/price` ve `PUT /api/finance/rates/{currency}` ile güncellenir; otomatik kaynak da bu uçları kullanacak. ≈ işaretli işlemlerin kuru da o zaman tarihine göre düzeltilebilir.
+- **İşlem kuru.** Boş bırakılırsa işlem tarihinin TCMB kuru otomatik kullanılır. TCMB'ye ulaşılamazsa güncel kur kullanılır ve işlem ≈ ile işaretlenir; sonraki güncellemede gerçek kurla düzeltilir.
+
+### Otomatik fiyatlar
+
+| Kaynak | Ne için | Not |
+|---|---|---|
+| [TCMB](https://www.tcmb.gov.tr/kurlar/today.xml) | USD/TRY, EUR/TRY (döviz alış) ve geçmiş kurlar | Resmî; iş günleri ~15:30'da yayınlanır |
+| [Truncgil Finans](https://finans.truncgil.com/today.json) | Gram, çeyrek, yarım, tam altın, gümüş, ons (alış) | Gayriresmî ücretsiz kaynak |
+| Yahoo Finance | BIST (`THYAO.IS`) ve ABD hisseleri | Resmî olmayan uç; BIST ~15 dk gecikmeli |
+
+- Varlık eklenince kaynak otomatik seçilir (altın → Truncgil, hisse → Yahoo, USD/EUR → TCMB, fon → elle). Portföy tablosundaki kaynak etiketine tıklayıp değiştirilebilir.
+- Hafta içi 09:00–23:45 arası 15 dakikada bir, diğer zamanlarda 3 saatte bir güncellenir; Portföy'deki **↻ Güncelle** ile anında.
+- Bir kaynak çalışmazsa son bilinen fiyat kalır ve etiket ⚠ ile işaretlenir. 26 saatten eski fiyatlar sarı görünür.
+- Kapatmak için: `lifeplanner.prices.enabled=false`.
 
 ## Notlar
 

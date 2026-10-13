@@ -13,6 +13,7 @@ import com.example.lifeplanner.desktop.api.Models.Asset;
 import com.example.lifeplanner.desktop.api.Models.Holding;
 import com.example.lifeplanner.desktop.api.Models.Payment;
 import com.example.lifeplanner.desktop.api.Models.PaymentsOverview;
+import com.example.lifeplanner.desktop.api.Models.PriceStatus;
 import com.example.lifeplanner.desktop.api.Models.Portfolio;
 import com.example.lifeplanner.desktop.api.Models.Rate;
 import com.example.lifeplanner.desktop.api.Models.Trade;
@@ -99,8 +100,8 @@ public class FinancePage extends Page {
 	@Override
 	public void refresh() {
 		switch (view) {
-			case PORTFOLIO -> Ui.async(() -> new Object[] { api.portfolio(), api.assets(), api.rates() },
-					r -> renderPortfolio((Portfolio) r[0], cast(r[1]), cast(r[2])));
+			case PORTFOLIO -> Ui.async(() -> new Object[] { api.portfolio(), api.assets(), api.rates(), api.priceStatus() },
+					r -> renderPortfolio((Portfolio) r[0], cast(r[1]), cast(r[2]), (PriceStatus) r[3]));
 			case TRADES -> Ui.async(() -> new Object[] { api.assets(), api.trades(tradeFilter), api.rates() },
 					r -> renderTrades(cast(r[0]), cast(r[1]), cast(r[2])));
 			case PAYMENTS -> Ui.async(api::payments, this::renderPayments);
@@ -115,7 +116,7 @@ public class FinancePage extends Page {
 	// =====================================================================
 	// Portföy
 	// =====================================================================
-	private void renderPortfolio(Portfolio p, List<Asset> assets, List<Rate> rates) {
+	private void renderPortfolio(Portfolio p, List<Asset> assets, List<Rate> rates, PriceStatus status) {
 		var t = p.totals();
 		var stats = new HBox(12,
 				stat("Toplam değer", Ui.label(Money.money(t.valueTry(), "TRY", 0), "stat-value"), Ui.label(Money.money(t.valueUsd(), "USD", 0), "muted")),
@@ -126,7 +127,7 @@ public class FinancePage extends Page {
 						Ui.label(Money.signed(t.realizedTry(), "TRY", 0), "stat-value", "plain", Money.pnl(t.realizedTry())),
 						Ui.label(Money.signed(t.realizedUsd(), "USD", 0), Money.pnl(t.realizedUsd()))),
 				stat("Kurlar (değiştirmek için tıkla)", rateRow("USD", rates, p.rateIsFallback() ? p.usdTry() : null), rateRow("EUR", rates, null)));
-		body.getChildren().setAll(stats);
+		body.getChildren().setAll(statusBar(status), stats);
 
 		var open = p.holdings().stream().filter(h -> !h.closed()).toList();
 		if (open.isEmpty()) {
@@ -206,13 +207,15 @@ public class FinancePage extends Page {
 			var name = new VBox(2, Ui.row(colorDot(Money.ASSET_COLOR.get(h.type())), Ui.label(h.name())), Ui.label(h.symbol(), "muted"));
 
 			Node price;
-			if (asset != null && asset.priceFromRate()) {
-				price = right(Ui.label(Money.money(h.price(), h.priceCurrency())), Ui.label("kurdan", "muted"));
+			var source = h.priceSource() != null ? h.priceSource() : "MANUAL";
+			if (!"MANUAL".equals(source)) {
+				// Otomatik fiyat elle değiştirilmez; bir sonraki güncellemede üzerine yazılırdı
+				price = right(Ui.label(Money.money(h.price(), h.priceCurrency())), sourceTag(h, asset));
 			}
 			else {
 				var btn = Ui.button(Money.money(h.price(), h.priceCurrency()) + "  ✎", () -> editPrice(h), "ghost", "price");
 				btn.setTooltip(new Tooltip("Güncel fiyatı gir"));
-				price = h.priceIsFallback() ? right(btn, Ui.tag("son işlem fiyatı", "overdue")) : right(btn);
+				price = h.priceIsFallback() ? right(btn, Ui.tag("son işlem fiyatı", "overdue"), sourceTag(h, asset)) : right(btn, sourceTag(h, asset));
 			}
 
 			Node[] cells = {
@@ -234,6 +237,78 @@ public class FinancePage extends Page {
 		}
 		return Ui.card(Ui.row(Ui.label("Varlıklar", "h2"), Ui.spacer(), Ui.button("+ Varlık", this::openAssetForm)), grid,
 				Ui.label("Kâr/zarar her işlemin kendi günündeki kurla hesaplanır; dolar satırı \"dolar bazında\" kazancını gösterir.", "muted"));
+	}
+
+	private Node statusBar(PriceStatus status) {
+		var text = new HBox(4);
+		text.setAlignment(Pos.CENTER_LEFT);
+		if (status == null) {
+			text.getChildren().add(Ui.label("Fiyatlar henüz güncellenmedi", "muted"));
+		}
+		else {
+			text.getChildren().add(Ui.label("Fiyatlar otomatik güncelleniyor · son: " + Money.timeAgo(status.finishedAt()) + " ·", "muted"));
+			status.sources().forEach((k, v) -> {
+				var l = Ui.label(k + ("ok".equals(v) ? " ✓" : " ✗"), "ok".equals(v) ? "pos" : "neg");
+				if (!"ok".equals(v)) {
+					l.setTooltip(new Tooltip(v));
+				}
+				text.getChildren().add(l);
+			});
+		}
+		var refresh = Ui.button("↻ Güncelle", () -> { });
+		refresh.setOnAction(e -> {
+			refresh.setDisable(true);
+			refresh.setText("Güncelleniyor…");
+			Ui.async(api::refreshPrices, s -> refresh());
+		});
+		return Ui.row(text, Ui.spacer(), refresh);
+	}
+
+	private Node sourceTag(Holding h, Asset asset) {
+		var source = h.priceSource() != null ? h.priceSource() : "MANUAL";
+		var text = (h.priceError() != null ? "⚠ " : "") + Money.PRICE_SOURCE.getOrDefault(source, source)
+				+ (!"MANUAL".equals(source) && h.priceUpdatedAt() != null ? " · " + Money.timeAgo(h.priceUpdatedAt()) : "");
+		var variant = h.priceError() != null ? "sell" : !"MANUAL".equals(source) && Money.isStale(h.priceUpdatedAt()) ? "overdue" : null;
+		var tag = Ui.tag(text, variant);
+		tag.setTooltip(new Tooltip(h.priceError() != null ? "Son güncelleme başarısız: " + h.priceError() : "Fiyat kaynağını değiştirmek için tıkla"));
+		tag.setOnMouseClicked(e -> editSource(asset));
+		tag.getStyleClass().add("clickable");
+		return tag;
+	}
+
+	private void editSource(Asset asset) {
+		if (asset == null) {
+			return;
+		}
+		var dialog = new Dialog<Map<String, Object>>();
+		dialog.setTitle(asset.name() + " · fiyat kaynağı");
+		dialog.setHeaderText(null);
+		dialog.getDialogPane().getStylesheets().addAll(getScene().getStylesheets());
+		dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+		var source = new ComboBox<String>();
+		source.getItems().addAll("MANUAL", "TRUNCGIL", "YAHOO");
+		if ("CURRENCY".equals(asset.type())) {
+			source.getItems().add("RATE");
+		}
+		source.setConverter(TaskWidgets.converter(k -> k == null ? "" : switch (k) {
+			case "TRUNCGIL" -> "Truncgil (altın)";
+			case "YAHOO" -> "Yahoo (hisse)";
+			case "RATE" -> "TCMB kuru";
+			default -> "Elle";
+		}));
+		source.setValue(asset.priceSource() != null ? asset.priceSource() : "MANUAL");
+		var symbol = field("gram-altin, ceyrek-altin, THYAO.IS, AAPL…", asset.sourceSymbol() != null ? asset.sourceSymbol() : "");
+		symbol.disableProperty().bind(source.valueProperty().isNotEqualTo("TRUNCGIL").and(source.valueProperty().isNotEqualTo("YAHOO")));
+		var form = new VBox(10, Ui.label("Kaynak", "muted"), source, Ui.label("Kaynaktaki sembol", "muted"), symbol);
+		form.setPadding(new Insets(10));
+		form.setPrefWidth(380);
+		dialog.getDialogPane().setContent(form);
+		dialog.setResultConverter(bt -> bt != ButtonType.OK ? null
+				: body("priceSource", source.getValue(), "sourceSymbol", symbol.isDisabled() || symbol.getText().isBlank() ? null : symbol.getText().trim()));
+		dialog.showAndWait().ifPresent(req -> Ui.run(() -> {
+			api.setAssetSource(asset.id(), (String) req.get("priceSource"), (String) req.get("sourceSymbol"));
+			api.refreshPrices();
+		}, this::refresh));
 	}
 
 	private static VBox right(Node... nodes) {
@@ -260,7 +335,11 @@ public class FinancePage extends Page {
 
 	private Node rateRow(String currency, List<Rate> rates, BigDecimal fallback) {
 		var rate = rates.stream().filter(r -> r.currency().equals(currency)).findFirst();
-		Label value = rate.map(r -> Ui.label(Money.num(r.rateTry()), "h2"))
+		Label value = rate.map(r -> {
+			var l = Ui.label(Money.num(r.rateTry()), "h2");
+			l.setTooltip(new Tooltip("TCMB döviz alış · " + Money.timeAgo(r.updatedAt())));
+			return l;
+		})
 				.orElseGet(() -> fallback != null ? Ui.tag(Money.num(fallback) + " ?", "overdue") : Ui.tag("gir", "overdue"));
 		var row = Ui.row(Ui.label(currency + "/TRY", "muted"), Ui.spacer(), value);
 		row.getStyleClass().add("clickable");
@@ -418,6 +497,30 @@ public class FinancePage extends Page {
 		for (var f : List.of(qty, price, rate, fee)) {
 			f.textProperty().addListener((o, a, b) -> update.run());
 		}
+
+		// Tarih seçilince o günün TCMB kuru otomatik dolar (kullanıcı kendisi yazdıysa dokunulmaz)
+		String[] autoRate = { null };
+		java.util.function.Consumer<LocalDate> fillRate = d -> {
+			if (d == null) {
+				return;
+			}
+			Ui.async(() -> Optional.ofNullable(api.historicalRate(d)), hr -> {
+				hr.ifPresentOrElse(r -> {
+					useRate.setText("TCMB " + r.rateDate().format(Ui.SHORT) + ": " + Money.num(r.rateTry()));
+					useRate.setOnAction(ev -> rate.setText(Money.input(r.rateTry())));
+					useRate.setVisible(true);
+					var value = Money.input(r.rateTry());
+					if (rate.getText().isBlank() || rate.getText().equals(autoRate[0])) {
+						rate.setText(value);
+					}
+					autoRate[0] = value;
+				}, () -> useRate.setVisible(false));
+			});
+		};
+		date.valueProperty().addListener((o, a, b) -> fillRate.accept(b));
+		if (e == null) {
+			fillRate.accept(date.getValue());
+		}
 		asset.valueProperty().addListener((o, a, b) -> update.run());
 		side.selectedToggleProperty().addListener((o, a, b) -> {
 			if (b == null) {
@@ -477,7 +580,7 @@ public class FinancePage extends Page {
 		actions.getChildren().addAll(Ui.spacer(), preview);
 
 		return Ui.card(Ui.row(Ui.label(e != null ? "İşlemi düzenle" : "Yeni işlem", "h2"), Ui.spacer(), sideBar), grid, note,
-				Ui.label("Ondalık için virgül kullan (6.250,50); nokta binlik ayırıcıdır. O günkü kuru bilmiyorsan boş bırak: güncel kur kullanılır ve işlem ≈ ile işaretlenir.", "muted"),
+				Ui.label("Ondalık için virgül kullan (6.250,50); nokta binlik ayırıcıdır. Kur, seçtiğin tarihin TCMB kuruyla otomatik dolar.", "muted"),
 				actions);
 	}
 

@@ -5,6 +5,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.example.demo.finance.market.PriceSource;
+
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -25,7 +27,17 @@ public final class FinanceDtos {
 			@NotNull AssetType type,
 			@NotNull Currency priceCurrency,
 			@Size(max = 16) String unit,
-			@Positive BigDecimal currentPrice) {
+			@Positive BigDecimal currentPrice,
+			/** Boşsa sembol ve türe göre önerilir. */
+			PriceSource priceSource,
+			@Size(max = 64) String sourceSymbol) {
+	}
+
+	public record SourceRequest(@NotNull PriceSource priceSource, @Size(max = 64) String sourceSymbol) {
+	}
+
+	/** Belirli bir gün için TCMB kuru; rateDate, tatil/hafta sonunda önceki iş günüdür. */
+	public record HistoricalRate(Currency currency, LocalDate requestedDate, LocalDate rateDate, BigDecimal rateTry) {
 	}
 
 	public record PriceRequest(@NotNull @Positive BigDecimal price) {
@@ -33,7 +45,8 @@ public final class FinanceDtos {
 
 	/** @param priceFromRate fiyat elle girilmiyor, kurlardan geliyor (USD, EUR varlıkları) */
 	public record AssetResponse(Long id, String symbol, String name, AssetType type, Currency priceCurrency, String unit,
-			BigDecimal currentPrice, Instant priceUpdatedAt, boolean priceFromRate, boolean hasTrades) {
+			BigDecimal currentPrice, Instant priceUpdatedAt, boolean priceFromRate, boolean hasTrades,
+			PriceSource priceSource, String sourceSymbol, String priceError) {
 	}
 
 	// ---------- İşlemler ----------
@@ -68,6 +81,7 @@ public final class FinanceDtos {
 	 */
 	public record Holding(Long assetId, String symbol, String name, AssetType type, Currency priceCurrency, String unit,
 			BigDecimal quantity, BigDecimal avgCost, BigDecimal price, boolean priceIsFallback,
+			PriceSource priceSource, Instant priceUpdatedAt, String priceError,
 			BigDecimal costTry, BigDecimal costUsd, BigDecimal valueTry, BigDecimal valueUsd,
 			BigDecimal unrealizedTry, BigDecimal unrealizedUsd, BigDecimal unrealizedPctTry, BigDecimal unrealizedPctUsd,
 			BigDecimal realizedTry, BigDecimal realizedUsd, BigDecimal weight, boolean closed) {

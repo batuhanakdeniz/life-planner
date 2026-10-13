@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../../api.js'
 import { formatDate, today } from '../../util.js'
 import { ASSET_ICON, currencySymbol, fmtMoney, fmtNum, parseNum } from '../../money.js'
@@ -28,6 +28,25 @@ export default function TradesView() {
   useEffect(load, [load])
 
   const asset = assets.find((a) => String(a.id) === String(assetId))
+
+  // Tarih seçilince o günün TCMB kuru otomatik dolar (kullanıcı kendisi yazdıysa dokunulmaz)
+  const [tcmbInfo, setTcmbInfo] = useState(null)
+  const autoRate = useRef(null)
+  useEffect(() => {
+    if (!form.date) return
+    let cancelled = false
+    api.historicalRate(form.date).then((r) => {
+      if (cancelled) return
+      setTcmbInfo(r)
+      if (!r) return
+      const value = String(r.rateTry).replace('.', ',')
+      // Güncelleyici gecikmeli çalışır; karşılaştırma için önceki otomatik değeri şimdiden yakala
+      const previousAuto = autoRate.current
+      autoRate.current = value
+      setForm((f) => (f.usdTryRate === '' || f.usdTryRate === previousAuto ? { ...f, usdTryRate: value } : f))
+    }).catch(() => !cancelled && setTcmbInfo(null))
+    return () => { cancelled = true }
+  }, [form.date])
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
 
   // Döviz alımında (USD varlığı) birim fiyat zaten USD/TRY kurudur
@@ -52,10 +71,11 @@ export default function TradesView() {
     if (Object.values(body).some((v) => Number.isNaN(v))) { setError('Sayı alanlarından biri geçersiz'); return }
     if (!body.quantity || !body.unitPrice) { setError('Miktar ve birim fiyat gerekli'); return }
     const call = editing ? api.updateTrade(editing, body) : api.createTrade(body)
-    call.then(() => { setForm(emptyForm()); setEditing(null); setError(null); load() }).catch((err) => setError(err.message))
+    call.then(() => { autoRate.current = null; setForm(emptyForm()); setEditing(null); setError(null); load() }).catch((err) => setError(err.message))
   }
 
   const edit = (t) => {
+    autoRate.current = null
     setEditing(t.id)
     setAssetId(String(t.assetId))
     const s = (v) => (v == null ? '' : String(v).replace('.', ','))
@@ -92,8 +112,9 @@ export default function TradesView() {
             <input inputMode="decimal" placeholder={isUsdAsset ? 'Alış kuru' : '0,00'} value={form.unitPrice} onChange={set('unitPrice')} /></label>
           <label>
             <span className="row" style={{ gap: 6 }}>O günkü USD/TRY
-              {!isUsdAsset && usdRate && <button type="button" className="link-btn" title="Kurlar'da girili güncel kuru kullan"
-                onClick={() => setForm({ ...form, usdTryRate: String(usdRate).replace('.', ',') })}>güncel: {fmtNum(usdRate)}</button>}
+              {!isUsdAsset && tcmbInfo && <button type="button" className="link-btn" title="TCMB döviz alış kuru"
+                onClick={() => setForm({ ...form, usdTryRate: String(tcmbInfo.rateTry).replace('.', ',') })}>
+                TCMB {formatDate(tcmbInfo.rateDate, { day: 'numeric', month: 'short' })}: {fmtNum(tcmbInfo.rateTry)}</button>}
             </span>
             {isUsdAsset
               ? <input disabled value={form.unitPrice} title="Dolar alımında birim fiyat kurun kendisidir" />
@@ -104,7 +125,7 @@ export default function TradesView() {
             <input inputMode="decimal" placeholder="0" value={form.fee} onChange={set('fee')} /></label>
         </div>
         <input placeholder="Not (isteğe bağlı)" value={form.note} onChange={set('note')} />
-        <p className="muted" style={{ margin: 0 }}>Ondalık için virgül kullan (6.250,50). Nokta binlik ayırıcıdır. O günkü kuru bilmiyorsan boş bırak; güncel kur kullanılır ve işlem ≈ ile işaretlenir.</p>
+        <p className="muted" style={{ margin: 0 }}>Ondalık için virgül kullan (6.250,50). Nokta binlik ayırıcıdır. Kur, seçtiğin tarihin TCMB kuruyla otomatik dolar; istersen değiştirebilirsin.</p>
         <div className="row">
           <button className={`btn primary ${form.side === 'SELL' ? 'sell-btn' : ''}`}>{editing ? 'Güncelle' : form.side === 'BUY' ? 'Alışı kaydet' : 'Satışı kaydet'}</button>
           {editing && <button type="button" className="btn" onClick={() => { setEditing(null); setForm(emptyForm()) }}>Vazgeç</button>}

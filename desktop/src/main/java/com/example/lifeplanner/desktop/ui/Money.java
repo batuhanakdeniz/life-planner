@@ -19,6 +19,29 @@ public final class Money {
 		FREQUENCY.put("YEARLY", "Yıllık");
 	}
 
+	public static final Map<String, String> PRICE_SOURCE = Map.of("RATE", "TCMB", "TRUNCGIL", "Truncgil", "YAHOO", "Yahoo", "MANUAL", "Elle");
+
+	/** "3 dk önce", "2 sa önce", "4 gün önce" */
+	public static String timeAgo(java.time.Instant t) {
+		if (t == null) {
+			return "";
+		}
+		long min = java.time.Duration.between(t, java.time.Instant.now()).toMinutes();
+		if (min < 1) {
+			return "az önce";
+		}
+		if (min < 60) {
+			return min + " dk önce";
+		}
+		long h = Math.round(min / 60.0);
+		return h < 48 ? h + " sa önce" : Math.round(h / 24.0) + " gün önce";
+	}
+
+	/** Otomatik fiyat 26 saattir güncellenmediyse bayat sayılır. */
+	public static boolean isStale(java.time.Instant t) {
+		return t != null && java.time.Duration.between(t, java.time.Instant.now()).toHours() >= 26;
+	}
+
 	private static final Pattern THOUSANDS = Pattern.compile("^\\d{1,3}(\\.\\d{3})+$");
 	private static final Pattern PLAIN = Pattern.compile("^-?\\d+(\\.\\d+)?$");
 

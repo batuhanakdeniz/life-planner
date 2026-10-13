@@ -16,4 +16,6 @@ public interface TradeRepository extends JpaRepository<Trade, Long> {
 	List<Trade> findByAssetIdOrderByDateAscIdAsc(Long assetId);
 
 	boolean existsByAssetId(Long assetId);
+
+	List<Trade> findByRateEstimatedTrue();
 }

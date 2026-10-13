@@ -8,7 +8,7 @@ async function request(method, path, body) {
   })
   if (res.status === 204) return null
   // Günlük kaydı olmayan gün için 404 normaldir
-  if (res.status === 404 && path.startsWith('/journal/')) return null
+  if (res.status === 404 && (path.startsWith('/journal/') || path.startsWith('/finance/rates/history'))) return null
   if (!res.ok) {
     const problem = await res.json().catch(() => ({}))
     throw new Error(problem.detail || `İstek başarısız: ${res.status}`)
@@ -56,6 +56,10 @@ export const api = {
   updateAsset: (id, a) => put(`/finance/assets/${id}`, a),
   setAssetPrice: (id, price) => put(`/finance/assets/${id}/price`, { price }),
   deleteAsset: (id) => del(`/finance/assets/${id}`),
+  setAssetSource: (id, priceSource, sourceSymbol) => put(`/finance/assets/${id}/source`, { priceSource, sourceSymbol }),
+  priceStatus: () => get('/finance/prices/status'),
+  refreshPrices: () => post('/finance/prices/refresh'),
+  historicalRate: (date) => get(`/finance/rates/history?date=${date}`),
   trades: (assetId) => get(`/finance/trades${assetId ? `?assetId=${assetId}` : ''}`),
   createTrade: (t) => post('/finance/trades', t),
   updateTrade: (id, t) => put(`/finance/trades/${id}`, t),

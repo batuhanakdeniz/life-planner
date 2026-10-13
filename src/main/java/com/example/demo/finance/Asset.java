@@ -3,6 +3,8 @@ package com.example.demo.finance;
 import java.math.BigDecimal;
 import java.time.Instant;
 
+import com.example.demo.finance.market.PriceSource;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -45,6 +47,19 @@ public class Asset {
 	private BigDecimal currentPrice;
 
 	private Instant priceUpdatedAt;
+
+	/** Fiyatın kaynağı; null ise başlangıçta önerilen kaynak atanır. */
+	@Enumerated(EnumType.STRING)
+	@Column(length = 16)
+	private PriceSource priceSource;
+
+	/** Kaynaktaki karşılığı: Truncgil anahtarı ("gram-altin") ya da Yahoo sembolü ("THYAO.IS"). */
+	@Column(length = 64)
+	private String sourceSymbol;
+
+	/** Son otomatik güncellemede alınan hata (başarılıysa null). */
+	@Column(length = 300)
+	private String priceError;
 
 	@Column(nullable = false, updatable = false)
 	private Instant createdAt = Instant.now();

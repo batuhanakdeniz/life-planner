@@ -41,7 +41,16 @@ public final class Models {
 
 	// ---------- Finans ----------
 	public record Asset(Long id, String symbol, String name, String type, String priceCurrency, String unit,
-			BigDecimal currentPrice, boolean priceFromRate, boolean hasTrades) {
+			BigDecimal currentPrice, boolean priceFromRate, boolean hasTrades, String priceSource, String sourceSymbol,
+			String priceError) {
+	}
+
+	/** @param sources kaynak → "ok" ya da hata mesajı */
+	public record PriceStatus(java.time.Instant finishedAt, int updated, int failed, int ratesFixed,
+			java.util.Map<String, String> sources) {
+	}
+
+	public record HistoricalRate(String currency, LocalDate requestedDate, LocalDate rateDate, BigDecimal rateTry) {
 	}
 
 	public record Trade(Long id, Long assetId, String assetSymbol, String assetName, String unit, String priceCurrency,
@@ -49,11 +58,12 @@ public final class Models {
 			boolean rateEstimated, BigDecimal fee, String note, BigDecimal totalTry, BigDecimal totalUsd) {
 	}
 
-	public record Rate(String currency, BigDecimal rateTry) {
+	public record Rate(String currency, BigDecimal rateTry, java.time.Instant updatedAt) {
 	}
 
 	public record Holding(Long assetId, String symbol, String name, String type, String priceCurrency, String unit,
 			BigDecimal quantity, BigDecimal avgCost, BigDecimal price, boolean priceIsFallback,
+			String priceSource, java.time.Instant priceUpdatedAt, String priceError,
 			BigDecimal costTry, BigDecimal costUsd, BigDecimal valueTry, BigDecimal valueUsd,
 			BigDecimal unrealizedTry, BigDecimal unrealizedUsd, BigDecimal unrealizedPctTry, BigDecimal unrealizedPctUsd,
 			BigDecimal realizedTry, BigDecimal realizedUsd, BigDecimal weight, boolean closed) {
