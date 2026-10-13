@@ -119,6 +119,16 @@ public class ApiClient {
 	public void payPayment(long id) { send("POST", "/finance/payments/" + id + "/pay", body(), null); }
 	public void undoPayment(long logId) { send("DELETE", "/finance/payments/logs/" + logId, null, null); }
 
+	// --- Bülten ---
+	/** Tarih null ise en son bülten; hiç yoksa null. */
+	public Models.Bulletin bulletin(LocalDate date) {
+		return send("GET", "/bulletins" + (date != null ? "?date=" + date : ""), null, new TypeReference<Models.Bulletin>() { });
+	}
+	public List<LocalDate> bulletinDates() { return send("GET", "/bulletins/dates", null, new TypeReference<List<LocalDate>>() { }); }
+	public List<Models.BulletinChannel> bulletinChannels() {
+		return send("GET", "/bulletins/channels", null, new TypeReference<List<Models.BulletinChannel>>() { });
+	}
+
 	// --- Günlük ---
 	public List<JournalEntry> journal(LocalDate from, LocalDate to) { return send("GET", "/journal?from=" + from + "&to=" + to, null, ENTRIES); }
 	public void saveJournal(LocalDate date, String content, Integer mood) { send("PUT", "/journal/" + date, body("content", content, "mood", mood), null); }
@@ -134,7 +144,7 @@ public class ApiClient {
 				req.method(method, BodyPublishers.noBody());
 			}
 			var res = http.send(req.build(), BodyHandlers.ofString());
-			if (res.statusCode() == 204 || (res.statusCode() == 404 && path.startsWith("/finance/rates/history"))) {
+			if (res.statusCode() == 204 || (res.statusCode() == 404 && (path.startsWith("/finance/rates/history") || path.startsWith("/bulletins?") || path.equals("/bulletins")))) {
 				return null;
 			}
 			if (res.statusCode() >= 400) {

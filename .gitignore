@@ -40,3 +40,6 @@ build/
 
 ### Yerel MCP ayarı (kullanıcıya özgü yollar içerir) ###
 .mcp.json
+
+### Python ###
+__pycache__/

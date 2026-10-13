@@ -4,7 +4,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import com.example.demo.finance.PortfolioService;
@@ -15,7 +14,6 @@ import com.example.demo.finance.PortfolioService;
  * Testlerde {@code lifeplanner.prices.enabled=false} ile kapatılır.
  */
 @Configuration
-@EnableScheduling
 @ConditionalOnProperty(name = "lifeplanner.prices.enabled", havingValue = "true", matchIfMissing = true)
 public class PriceScheduler {
 

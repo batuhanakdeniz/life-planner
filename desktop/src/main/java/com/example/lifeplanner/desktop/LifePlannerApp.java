@@ -160,7 +160,7 @@ public class LifePlannerApp extends Application {
 	private void takeSnapshots(File dir) {
 		dir.mkdirs();
 		List<Runnable> steps = new ArrayList<>();
-		String[] names = { "today", "tasks", "habits", "goals", "journal", "finance" };
+		String[] names = { "today", "tasks", "habits", "goals", "journal", "finance", "bulletin" };
 		for (int i = 0; i < main.pageCount(); i++) {
 			int index = i;
 			steps.add(() -> main.show(index));

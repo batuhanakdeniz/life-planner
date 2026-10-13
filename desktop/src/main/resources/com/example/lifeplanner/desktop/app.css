@@ -192,3 +192,12 @@
 .due-card { -fx-border-color: rgba(251,191,36,0.4); }
 .button.ghost.price { -fx-text-fill: -text; -fx-padding: 0; }
 .button.ghost.price:hover { -fx-text-fill: -accent; }
+
+/* --- Bülten --- */
+.digest { -fx-border-color: rgba(167,139,250,0.4); }
+.overview { -fx-font-size: 14px; -fx-line-spacing: 3; }
+.digest-name { -fx-font-weight: bold; -fx-text-fill: -accent; -fx-padding: 0; }
+.video { -fx-padding: 10 0; -fx-border-color: -border transparent transparent transparent; }
+.video-title { -fx-font-weight: bold; -fx-font-size: 13px; }
+.hyperlink { -fx-text-fill: -accent-2; -fx-border-color: transparent; -fx-padding: 0; }
+.label { -fx-line-spacing: 2; }

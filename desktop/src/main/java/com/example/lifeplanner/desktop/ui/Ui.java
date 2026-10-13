@@ -115,6 +115,18 @@ public final class Ui {
 		return alert.showAndWait().filter(b -> b == ButtonType.OK).isPresent();
 	}
 
+	/** Bağlantıyı varsayılan tarayıcıda açar. */
+	public static void openUrl(String url) {
+		java.awt.EventQueue.invokeLater(() -> {
+			try {
+				java.awt.Desktop.getDesktop().browse(java.net.URI.create(url));
+			}
+			catch (Exception e) {
+				Platform.runLater(() -> error(new IllegalStateException("Bağlantı açılamadı: " + url)));
+			}
+		});
+	}
+
 	public static Label label(String text, String... styleClasses) {
 		var l = new Label(text);
 		l.getStyleClass().addAll(styleClasses);

@@ -320,3 +320,30 @@ td.streak { text-align: center; }
 .source-tag:hover { outline: 1px solid var(--accent); }
 .source-editor { display: grid; gap: 6px; margin-top: 8px; justify-items: end; }
 .source-editor input, .source-editor select { width: 180px; font-size: 13px; padding: 5px 8px; }
+
+/* --- Bülten --- */
+.btn.on { border-color: var(--accent); color: var(--accent); }
+.digest { margin-bottom: 16px; border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
+.overview { line-height: 1.6; margin: 0 0 10px; }
+.digest-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; line-height: 1.55; }
+.digest-name { font-size: 14px; font-weight: 600; color: var(--accent); }
+.channel-card { margin-bottom: 12px; padding: 0; overflow: hidden; }
+.channel-head { display: flex; align-items: center; gap: 10px; width: 100%; background: none; border: 0; padding: 14px 18px; cursor: pointer; text-align: left; flex-wrap: wrap; }
+.channel-head:hover { background: var(--surface-2); }
+.channel-name { font-weight: 600; font-size: 15px; }
+.chev { color: var(--muted); width: 14px; display: inline-block; }
+.channel-body { padding: 0 18px 14px; border-top: 1px solid var(--border); }
+.video { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.video:last-child { border-bottom: 0; }
+.video-head { display: flex; align-items: flex-start; gap: 8px; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; width: 100%; }
+.video-title { font-weight: 500; flex: 1; }
+.video-sub { margin: 4px 0 0 22px; font-size: 13px; }
+.video-sub a { color: var(--accent-2); }
+.video-summary { margin: 8px 0 6px 22px; line-height: 1.6; }
+.video .link-btn { margin-left: 22px; }
+.video-detail { margin: 6px 0 0 22px; }
+.video-detail h3 { font-size: 13px; color: var(--muted); margin: 12px 0 6px; font-weight: 600; }
+.video-detail ul { margin: 0; padding-left: 18px; line-height: 1.6; }
+.chapters { list-style: none; padding-left: 0 !important; }
+.ts { font-variant-numeric: tabular-nums; color: var(--accent-2); margin-right: 6px; }
+.mentions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; font-size: 13px; }

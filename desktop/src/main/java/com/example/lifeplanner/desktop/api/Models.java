@@ -93,4 +93,26 @@ public final class Models {
 	public record PaymentsOverview(BigDecimal monthlyTotalTry, List<String> missingRates, BigDecimal paidThisMonthTry,
 			List<Payment> payments, List<PaymentLog> recent) {
 	}
+
+	// ---------- Bülten ----------
+	public record Chapter(int seconds, String label) {
+	}
+
+	public record Mentions(List<String> people, List<String> companies, List<String> numbers) {
+	}
+
+	public record BulletinVideo(String videoId, String title, String url, java.time.Instant publishedAt, Integer durationSeconds,
+			boolean hasTranscript, String summary, List<String> keyPoints, List<Chapter> chapters, Mentions mentions) {
+	}
+
+	public record ChannelDigest(Long channelId, String channelName, String channelHandle, String shortSummary, String error,
+			java.time.Instant windowStart, java.time.Instant windowEnd, int skippedVideos, List<BulletinVideo> videos) {
+	}
+
+	public record Bulletin(LocalDate date, String overview, java.time.Instant generatedAt, List<ChannelDigest> channels) {
+	}
+
+	public record BulletinChannel(Long id, String name, String handle, String url, boolean active, java.time.LocalTime cutoffTime,
+			int lookbackHours) {
+	}
 }

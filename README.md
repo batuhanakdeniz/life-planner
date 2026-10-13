@@ -45,6 +45,7 @@ Masaüstü uygulamasının API adresi için `LIFEPLANNER_API` kullanılır (vars
 | **Günlük** | Ruh haline göre renklenen takvim + editör | `/api/journal`, `PUT /api/journal/{date}` |
 | **Finans · Portföy** | Toplam değer ₺/$, gerçekleşen/gerçekleşmemiş kâr-zarar, halka grafikte dağılım, varlık tablosu, kur ve fiyat girişi | `/api/finance/portfolio`, `/api/finance/assets`, `/api/finance/rates/{USD\|EUR}` |
 | **Finans · İşlemler** | Döviz, altın, hisse/fon alım-satımları; işlem günündeki USD/TRY kuru (bilinmiyorsa ≈ güncel kur) | `/api/finance/trades` |
+| **Bülten** | Takip edilen YouTube kanallarının günlük özeti: üstte "Günün özeti", altında katlanır kanal kartları; videoda önemli noktalar, zaman damgalı bölümler, kişi/şirket/rakamlar | `/api/bulletins`, `/api/bulletins/channels` |
 | **Finans · Ödemeler** | Kira, fatura, abonelik; "ödendi" + geri al, aylık sabit yük, Bugün ekranı ve bildirimlerde gösterim | `/api/finance/payments`, `/api/finance/payments/{id}/pay` |
 
 ### Masaüstüne özel
@@ -74,6 +75,16 @@ Masaüstü uygulamasının API adresi için `LIFEPLANNER_API` kullanılır (vars
 - Hafta içi 09:00–23:45 arası 15 dakikada bir, diğer zamanlarda 3 saatte bir güncellenir; Portföy'deki **↻ Güncelle** ile anında.
 - Bir kaynak çalışmazsa son bilinen fiyat kalır ve etiket ⚠ ile işaretlenir. 26 saatten eski fiyatlar sarı görünür.
 - Kapatmak için: `lifeplanner.prices.enabled=false`.
+
+### Bülten nasıl çalışır
+
+1. Her gün **12:05**'te zamanlanmış bir Claude Code görevi çalışır (talimatı: [`tools/bulletin/GOREV.md`](tools/bulletin/GOREV.md)). Uygulama kapalıysa açıldığında çalışır; kaçırılan günler (en fazla 7) sırayla telafi edilir.
+2. [`tools/bulletin/bulletin.py`](tools/bulletin/bulletin.py) yt-dlp ile her kanalın zaman aralığındaki videolarını ve altyazılarını toplar (kanal başına günde en fazla 15 video).
+3. Claude altyazıları Türkçe özetler ve backend'e gönderir; bülten web/masaüstünde görünür ve Obsidian'a `Bülten/YYYY-MM-DD.md` olarak yazılır.
+
+**Kanalları düzenleme:** Obsidian'da `Bülten/Kanallar.md` tablosu ya da veritabanındaki `bulletin_channels` tablosu. İkisi iki yönlü senkron (en geç 5 dk). Varsayılan tarama aralığı her kanal için dünkü 12:00 → bugün 12:00 (Türkiye saati); kanal başına `Kesim` ve `Geriye (saat)` sütunlarıyla değiştirilebilir.
+
+Gereken: `brew install yt-dlp`. Kasa yolu `LIFEPLANNER_VAULT` ile değiştirilebilir.
 
 ## Notlar
 

@@ -23,8 +23,8 @@ public class MainView extends BorderPane {
 	private int current;
 
 	public MainView(ApiClient api, Actions actions) {
-		pages = List.of(new TodayPage(api), new TasksPage(api), new HabitsPage(api), new GoalsPage(api), new JournalPage(api), new FinancePage(api));
-		String[] labels = { "☀️  Bugün", "✓  Görevler", "🔁  Alışkanlıklar", "🎯  Hedefler", "📓  Günlük", "💰  Finans" };
+		pages = List.of(new TodayPage(api), new TasksPage(api), new HabitsPage(api), new GoalsPage(api), new JournalPage(api), new FinancePage(api), new BulletinPage(api));
+		String[] labels = { "☀️  Bugün", "✓  Görevler", "🔁  Alışkanlıklar", "🎯  Hedefler", "📓  Günlük", "💰  Finans", "📰  Bülten" };
 
 		var group = new ToggleGroup();
 		var nav = new VBox(2);

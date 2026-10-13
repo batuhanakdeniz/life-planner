@@ -8,7 +8,7 @@ async function request(method, path, body) {
   })
   if (res.status === 204) return null
   // Günlük kaydı olmayan gün için 404 normaldir
-  if (res.status === 404 && (path.startsWith('/journal/') || path.startsWith('/finance/rates/history'))) return null
+  if (res.status === 404 && (path.startsWith('/journal/') || path.startsWith('/finance/rates/history') || path.startsWith('/bulletins?') || path === '/bulletins')) return null
   if (!res.ok) {
     const problem = await res.json().catch(() => ({}))
     throw new Error(problem.detail || `İstek başarısız: ${res.status}`)
@@ -72,6 +72,11 @@ export const api = {
   deletePayment: (id) => del(`/finance/payments/${id}`),
   payPayment: (id, body) => post(`/finance/payments/${id}/pay`, body ?? {}),
   undoPayment: (logId) => del(`/finance/payments/logs/${logId}`),
+
+  // --- Bülten ---
+  bulletin: (date) => get(`/bulletins${date ? `?date=${date}` : ''}`),
+  bulletinDates: () => get('/bulletins/dates'),
+  bulletinChannels: () => get('/bulletins/channels'),
 
   journal: (from, to) => get(`/journal?from=${from}&to=${to}`),
   journalEntry: (date) => get(`/journal/${date}`),
