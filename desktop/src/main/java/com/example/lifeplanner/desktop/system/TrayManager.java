@@ -68,16 +68,34 @@ public class TrayManager {
 		return item;
 	}
 
-	/** Basit ikon: mor halka içinde onay işareti. */
+	/**
+	 * Menü çubuğu ikonu: logonun tek renk (template) sürümü, koyu menü çubuğunda da görünsün diye beyaza çevrilir.
+	 * Kaynak bulunamazsa eski basit halka çizilir.
+	 */
 	private static BufferedImage icon() {
+		try (var in = TrayManager.class.getResourceAsStream("menubar-iconTemplate@2x.png")) {
+			if (in != null) {
+				var src = javax.imageio.ImageIO.read(in);
+				var out = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_INT_ARGB);
+				for (int y = 0; y < src.getHeight(); y++) {
+					for (int x = 0; x < src.getWidth(); x++) {
+						int alpha = (src.getRGB(x, y) >>> 24) & 0xFF;
+						out.setRGB(x, y, (alpha << 24) | 0xFFFFFF);
+					}
+				}
+				return out;
+			}
+		}
+		catch (java.io.IOException e) {
+			// yedek ikona düş
+		}
 		int s = 44;
 		var img = new BufferedImage(s, s, BufferedImage.TYPE_INT_ARGB);
 		var g = img.createGraphics();
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		g.setColor(new java.awt.Color(0xA7, 0x8B, 0xFA));
+		g.setColor(java.awt.Color.WHITE);
 		g.setStroke(new BasicStroke(5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 		g.drawOval(4, 4, s - 8, s - 8);
-		g.drawPolyline(new int[] { 13, 20, 32 }, new int[] { 23, 30, 15 }, 3);
 		g.dispose();
 		return img;
 	}
