@@ -1,0 +1,194 @@
+/* Web sitesiyle aynı koyu/neon tema */
+.root {
+    -bg: #0b0d12;
+    -surface: #13161e;
+    -surface-2: #1c202b;
+    -border: #262b38;
+    -text: #e9ecf5;
+    -muted: #8a93a8;
+    -accent: #a78bfa;
+    -accent-2: #22d3ee;
+    -accent-soft: rgba(167, 139, 250, 0.14);
+    -success: #4ade80;
+    -danger: #f87171;
+    -warn: #fbbf24;
+    -hc: -accent;
+    -fx-background-color: -bg;
+    -fx-font-family: "Inter", "SF Pro Text", "Helvetica Neue", system-ui;
+    -fx-font-size: 13px;
+    -fx-text-fill: -text;
+    -fx-base: #1c202b;
+    -fx-control-inner-background: -surface;
+    -fx-accent: -accent;
+    -fx-focus-color: -accent;
+    -fx-faint-focus-color: transparent;
+}
+.label { -fx-text-fill: -text; }
+
+/* --- Kenar menü --- */
+.sidebar { -fx-background-color: -surface; -fx-border-color: transparent -border transparent transparent; -fx-padding: 18 10; -fx-pref-width: 210; }
+.brand { -fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 0 10 16 10; }
+.nav-button, .button.nav-button {
+    -fx-background-color: transparent; -fx-text-fill: -muted; -fx-alignment: center-left;
+    -fx-padding: 9 12; -fx-background-radius: 8; -fx-border-color: transparent; -fx-cursor: hand; -fx-font-size: 13px;
+}
+.nav-button:hover, .button.nav-button:hover { -fx-background-color: -surface-2; -fx-text-fill: -text; }
+.nav-button:selected { -fx-background-color: -accent-soft; -fx-text-fill: -accent; -fx-font-weight: bold; -fx-border-color: transparent transparent transparent -accent; -fx-border-width: 0 0 0 3; }
+
+/* --- Sayfa --- */
+.page { -fx-padding: 24 30; }
+.content-scroll, .content-scroll > .viewport { -fx-background-color: -bg; -fx-background: -bg; }
+.h1 { -fx-font-size: 22px; -fx-font-weight: bold; }
+.h2 { -fx-font-size: 14px; -fx-font-weight: bold; }
+.subtitle, .muted { -fx-text-fill: -muted; }
+.muted { -fx-font-size: 12px; }
+.empty { -fx-text-fill: -muted; -fx-alignment: center; -fx-padding: 12 0; }
+
+.card { -fx-background-color: -surface; -fx-border-color: -border; -fx-border-radius: 14; -fx-background-radius: 14; -fx-padding: 16; }
+.stat-value { -fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: linear-gradient(to right, -accent, -accent-2); }
+.stat-value.plain { -fx-text-fill: -text; }
+.stat-label { -fx-text-fill: -muted; -fx-font-size: 12px; }
+
+/* --- Butonlar ve girişler --- */
+.button {
+    -fx-background-color: -surface; -fx-border-color: -border; -fx-border-radius: 8; -fx-background-radius: 8;
+    -fx-text-fill: -text; -fx-padding: 6 12; -fx-cursor: hand;
+}
+.button:hover { -fx-background-color: -surface-2; }
+.button.primary { -fx-background-color: -accent; -fx-border-color: -accent; -fx-text-fill: #0b0d12; -fx-font-weight: bold; -fx-effect: dropshadow(gaussian, rgba(167,139,250,0.45), 14, 0, 0, 0); }
+.button.primary:hover { -fx-background-color: derive(-accent, 12%); }
+.button.ghost { -fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: -muted; -fx-padding: 2 6; }
+.button.ghost:hover { -fx-text-fill: -text; }
+.button.ghost.del:hover { -fx-text-fill: -danger; }
+.button.danger { -fx-text-fill: -danger; }
+.text-field, .text-area, .combo-box, .date-picker > .text-field {
+    -fx-background-color: -surface; -fx-border-color: -border; -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: -text;
+    -fx-prompt-text-fill: -muted; -fx-highlight-fill: -accent; -fx-highlight-text-fill: #0b0d12;
+}
+.date-picker { -fx-background-color: transparent; }
+.text-area .content { -fx-background-color: -surface; -fx-background-radius: 8; -fx-padding: 6; }
+.text-field:focused, .text-area:focused, .combo-box:focused { -fx-border-color: -accent; }
+.combo-box .list-cell { -fx-text-fill: -text; -fx-background-color: transparent; }
+.combo-box-popup .list-view, .context-menu { -fx-background-color: -surface-2; }
+.combo-box-popup .list-cell { -fx-background-color: -surface-2; -fx-text-fill: -text; }
+.combo-box-popup .list-cell:hover { -fx-background-color: -accent-soft; }
+.check-box .box { -fx-background-color: -surface-2; -fx-border-color: -border; -fx-border-radius: 4; -fx-background-radius: 4; }
+.check-box:selected .box { -fx-background-color: -accent; -fx-border-color: -accent; }
+.check-box:selected .mark { -fx-background-color: #0b0d12; }
+.check-box { -fx-text-fill: -text; }
+
+.toggle-group-bar { -fx-background-color: -surface; -fx-border-color: -border; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 3; -fx-spacing: 2; }
+.segment { -fx-background-color: transparent; -fx-text-fill: -muted; -fx-background-radius: 7; -fx-padding: 5 12; -fx-cursor: hand; }
+.segment:selected { -fx-background-color: -accent-soft; -fx-text-fill: -accent; -fx-font-weight: bold; }
+
+/* --- Listeler, etiketler --- */
+.item { -fx-padding: 8 4; -fx-border-color: transparent transparent -border transparent; -fx-spacing: 8; -fx-alignment: center-left; }
+.item.compact { -fx-padding: 4 0; -fx-font-size: 12px; }
+.title.prio-HIGH { -fx-text-fill: -danger; }
+.title.prio-LOW { -fx-text-fill: -muted; }
+.item.done .title { -fx-text-fill: -muted; -fx-strikethrough: true; }
+.title { -fx-wrap-text: true; }
+.tag { -fx-font-size: 11px; -fx-padding: 2 8; -fx-background-radius: 99; -fx-background-color: -surface-2; -fx-text-fill: -muted; }
+.tag.HIGH { -fx-background-color: rgba(248,113,113,0.15); -fx-text-fill: -danger; }
+.tag.LOW { -fx-background-color: rgba(34,211,238,0.15); -fx-text-fill: -accent-2; }
+.tag.overdue { -fx-background-color: rgba(251,191,36,0.15); -fx-text-fill: -warn; }
+.tag.goal { -fx-background-color: -accent-soft; -fx-text-fill: -accent; }
+
+.progress-bar { -fx-pref-height: 10; }
+.progress-bar > .track { -fx-background-color: -surface-2; -fx-background-radius: 99; -fx-background-insets: 0; }
+.progress-bar > .bar { -fx-background-color: linear-gradient(to right, -accent, -accent-2); -fx-background-radius: 99; -fx-background-insets: 0; -fx-padding: 4; }
+
+/* --- Alışkanlık --- */
+.habit-btn { -fx-min-width: 38; -fx-min-height: 38; -fx-max-width: 38; -fx-max-height: 38; -fx-background-radius: 99; -fx-border-radius: 99; -fx-border-width: 2; -fx-border-color: -hc; -fx-background-color: transparent; -fx-padding: 0; -fx-font-size: 16px; }
+.habit-btn.done { -fx-background-color: -hc; -fx-effect: dropshadow(gaussian, -hc, 14, 0.2, 0, 0); }
+.cell-btn { -fx-min-width: 30; -fx-min-height: 30; -fx-max-width: 30; -fx-max-height: 30; -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-width: 2; -fx-border-color: -hc; -fx-background-color: transparent; -fx-padding: 0; -fx-text-fill: #0b0d12; -fx-font-weight: bold; }
+.cell-btn.done { -fx-background-color: -hc; -fx-effect: dropshadow(gaussian, -hc, 10, 0.2, 0, 0); }
+.cell-btn:disabled { -fx-opacity: 0.3; -fx-border-style: segments(3, 3); }
+.dot { -fx-min-width: 11; -fx-min-height: 11; -fx-max-width: 11; -fx-max-height: 11; -fx-background-radius: 3; -fx-background-color: -surface-2; }
+.dot.done { -fx-background-color: -hc; }
+.dot.off { -fx-opacity: 0.35; }
+.hm { -fx-min-width: 13; -fx-min-height: 13; -fx-max-width: 13; -fx-max-height: 13; -fx-background-radius: 3; -fx-background-color: -surface-2; }
+.hm.done { -fx-background-color: -hc; -fx-effect: dropshadow(gaussian, -hc, 5, 0, 0, 0); }
+.hm.off { -fx-opacity: 0.3; }
+.streak { -fx-text-fill: -warn; -fx-font-weight: bold; }
+.habit-name { -fx-cursor: hand; }
+.habit-name:hover { -fx-text-fill: -accent; }
+.today-col { -fx-text-fill: -accent; }
+.selected-row { -fx-background-color: -accent-soft; -fx-background-radius: 8; }
+
+/* --- Görev görünümleri --- */
+.day-col { -fx-background-color: -surface; -fx-border-color: -border; -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 10; -fx-spacing: 4; }
+.day-col.today { -fx-border-color: -accent; -fx-effect: dropshadow(gaussian, rgba(167,139,250,0.35), 16, 0, 0, 0); }
+.day-num { -fx-font-size: 18px; -fx-font-weight: bold; }
+.quick-add { -fx-border-style: segments(4, 3); -fx-font-size: 12px; }
+.board-col { -fx-background-color: -surface-2; -fx-background-radius: 14; -fx-border-radius: 14; -fx-padding: 12; -fx-spacing: 8; -fx-border-color: transparent; -fx-border-width: 2; }
+.board-col.over { -fx-border-color: -accent; -fx-border-style: segments(6, 4); }
+.kcard { -fx-background-color: -surface; -fx-border-color: -border; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 10 12; -fx-spacing: 6; -fx-cursor: open-hand; }
+.kcard.done .title { -fx-text-fill: -muted; -fx-strikethrough: true; }
+.col-IN_PROGRESS { -fx-text-fill: -accent-2; }
+.col-DONE { -fx-text-fill: -success; }
+
+/* --- Zaman çizelgesi --- */
+.tl-row { -fx-background-radius: 8; -fx-cursor: hand; }
+.tl-row:hover, .tl-row.selected { -fx-background-color: -accent-soft; }
+.tl-month { -fx-text-fill: -muted; -fx-font-size: 11px; }
+.tl-grid { -fx-fill: -border; }
+.tl-bar { -fx-fill: -surface-2; -fx-stroke: -border; }
+.tl-bar.late { -fx-stroke: -danger; }
+.tl-fill { -fx-fill: linear-gradient(to right, -accent, -accent-2); }
+.tl-fill.completed { -fx-fill: -success; }
+.tl-now { -fx-fill: -accent-2; -fx-opacity: 0.8; }
+.tl-end { -fx-text-fill: -muted; -fx-font-size: 11px; }
+
+/* --- Günlük --- */
+.mood-btn { -fx-background-color: transparent; -fx-border-color: transparent; -fx-border-width: 2; -fx-border-radius: 10; -fx-font-size: 22px; -fx-opacity: 0.5; -fx-padding: 2 6; -fx-cursor: hand; }
+.mood-btn.on { -fx-border-color: -accent; -fx-opacity: 1; }
+.cal-day { -fx-background-color: -surface-2; -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: transparent; -fx-min-width: 42; -fx-min-height: 42; -fx-pref-width: 46; -fx-pref-height: 46; -fx-padding: 0; -fx-font-size: 12px; -fx-cursor: hand; -fx-content-display: top; }
+.cal-day:hover { -fx-border-color: -accent; }
+.cal-day.outside { -fx-opacity: 0.35; }
+.cal-day.now { -fx-text-fill: -accent-2; -fx-font-weight: bold; }
+.cal-day.sel { -fx-border-color: -accent; -fx-border-width: 2; }
+.cal-day.mood-1 { -fx-background-color: rgba(248,113,113,0.30); }
+.cal-day.mood-2 { -fx-background-color: rgba(251,146,60,0.25); }
+.cal-day.mood-3 { -fx-background-color: rgba(251,191,36,0.20); }
+.cal-day.mood-4 { -fx-background-color: rgba(74,222,128,0.22); }
+.cal-day.mood-5 { -fx-background-color: rgba(34,211,238,0.28); }
+
+/* --- Mini mod --- */
+.mini { -fx-padding: 14; -fx-spacing: 10; }
+.mini-header { -fx-font-size: 15px; -fx-font-weight: bold; }
+.toggle-button.pin { -fx-background-color: -surface; -fx-border-color: -border; -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: -muted; }
+.toggle-button.pin.nav-button { -fx-background-color: transparent; -fx-border-color: transparent; }
+.toggle-button.pin:selected { -fx-background-color: -accent-soft; -fx-border-color: -accent; -fx-text-fill: -accent; }
+
+.scroll-pane, .scroll-pane > .viewport { -fx-background-color: transparent; -fx-background: transparent; }
+.scroll-bar { -fx-background-color: transparent; }
+.scroll-bar .thumb { -fx-background-color: -border; -fx-background-radius: 99; }
+.scroll-bar .increment-button, .scroll-bar .decrement-button { -fx-padding: 0; }
+.dialog-pane { -fx-background-color: -surface; }
+.dialog-pane .label { -fx-text-fill: -text; }
+.dialog-pane > .button-bar > .container { -fx-background-color: -surface; }
+.dialog-pane .header-panel { -fx-background-color: -surface-2; }
+
+/* --- Finans --- */
+.pos { -fx-text-fill: -success; }
+.neg { -fx-text-fill: -danger; }
+.warn { -fx-text-fill: -warn; }
+.small { -fx-font-size: 11px; }
+.stat-value.plain.pos { -fx-text-fill: -success; }
+.stat-value.plain.neg { -fx-text-fill: -danger; }
+.table-cell { -fx-padding: 9 0; -fx-border-color: transparent transparent -border transparent; }
+.clickable { -fx-cursor: hand; -fx-padding: 2 0; }
+.clickable:hover .label { -fx-text-fill: -accent; }
+.button.link { -fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: -accent-2; -fx-padding: 0; -fx-font-size: 11px; }
+.button.link:hover { -fx-underline: true; }
+.button.pay { -fx-text-fill: -success; -fx-border-color: rgba(74,222,128,0.4); -fx-font-size: 12px; -fx-padding: 4 10; }
+.button.pay:hover { -fx-background-color: rgba(74,222,128,0.12); }
+.tag.buy { -fx-background-color: rgba(74,222,128,0.15); -fx-text-fill: -success; }
+.tag.sell { -fx-background-color: rgba(248,113,113,0.15); -fx-text-fill: -danger; }
+.segment.buy:selected { -fx-background-color: rgba(74,222,128,0.15); -fx-text-fill: -success; }
+.segment.sell:selected { -fx-background-color: rgba(248,113,113,0.15); -fx-text-fill: -danger; }
+.donut-title { -fx-font-size: 18px; -fx-font-weight: bold; }
+.due-card { -fx-border-color: rgba(251,191,36,0.4); }
+.button.ghost.price { -fx-text-fill: -text; -fx-padding: 0; }
+.button.ghost.price:hover { -fx-text-fill: -accent; }
