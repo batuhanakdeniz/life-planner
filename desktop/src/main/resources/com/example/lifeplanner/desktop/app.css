@@ -216,3 +216,16 @@
 .kv-value { -fx-font-size: 14px; -fx-font-weight: bold; }
 .kv-value.warn { -fx-text-fill: -warn; }
 .kv-value.neg { -fx-text-fill: -danger; }
+
+/* --- Ortak dosya bırakma alanı --- */
+.file-drop { -fx-border-color: -border; -fx-border-style: segments(6, 4); -fx-border-width: 2; -fx-border-radius: 12; -fx-background-radius: 12; -fx-background-color: -surface; -fx-padding: 18; -fx-cursor: hand; }
+.file-drop:hover, .file-drop.over { -fx-border-color: -accent; -fx-background-color: -accent-soft; }
+.file-drop-icon { -fx-font-size: 24px; }
+
+/* --- Hesap özetleri --- */
+.notice { -fx-background-color: rgba(74,222,128,0.12); -fx-text-fill: -success; -fx-padding: 10 14; -fx-background-radius: 8; -fx-cursor: hand; }
+.warn-box { -fx-background-color: rgba(251,191,36,0.12); -fx-padding: 10 14; -fx-background-radius: 8; }
+.edit-row { -fx-background-color: -accent-soft; -fx-background-radius: 8; }
+.code { -fx-font-family: "Menlo", monospace; -fx-background-color: -surface-2; -fx-padding: 1 6; -fx-background-radius: 4; }
+.stat-value.plain.warn { -fx-text-fill: -warn; }
+.stat-value.plain.pos { -fx-text-fill: -success; }

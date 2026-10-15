@@ -136,9 +136,79 @@ public class ApiClient {
 		return send("GET", "/bulletins/channels", null, new TypeReference<List<Models.BulletinChannel>>() { });
 	}
 
+	// --- Hesap özetleri ---
+	public Models.StatementSummary uploadStatement(java.nio.file.Path pdf) {
+		return upload("/finance/statements", pdf, new TypeReference<Models.StatementSummary>() { });
+	}
+	public List<Models.StatementSummary> statements() {
+		return send("GET", "/finance/statements", null, new TypeReference<List<Models.StatementSummary>>() { });
+	}
+	public Models.StatementDetail statement(long id) {
+		return send("GET", "/finance/statements/" + id, null, new TypeReference<Models.StatementDetail>() { });
+	}
+	public void deleteStatement(long id) { send("DELETE", "/finance/statements/" + id, null, null); }
+	public void setTransactionCategory(long txId, Long categoryId, boolean remember, String pattern) {
+		send("PUT", "/finance/statements/transactions/" + txId + "/category",
+				body("categoryId", categoryId, "remember", remember, "pattern", pattern), null);
+	}
+	public List<Models.SpendingCategory> spendingCategories() {
+		return send("GET", "/finance/spending-categories", null, new TypeReference<List<Models.SpendingCategory>>() { });
+	}
+	public Models.SpendingCategory createSpendingCategory(String name, String color) {
+		return send("POST", "/finance/spending-categories", body("name", name, "color", color), new TypeReference<Models.SpendingCategory>() { });
+	}
+	public List<Models.CategoryRule> categoryRules() {
+		return send("GET", "/finance/category-rules", null, new TypeReference<List<Models.CategoryRule>>() { });
+	}
+	public void updateCategoryRule(long id, String pattern, Long categoryId) {
+		send("PUT", "/finance/category-rules/" + id, body("pattern", pattern, "categoryId", categoryId), null);
+	}
+	public void deleteCategoryRule(long id) { send("DELETE", "/finance/category-rules/" + id, null, null); }
+
 	// --- Günlük ---
 	public List<JournalEntry> journal(LocalDate from, LocalDate to) { return send("GET", "/journal?from=" + from + "&to=" + to, null, ENTRIES); }
 	public void saveJournal(LocalDate date, String content, Integer mood) { send("PUT", "/journal/" + date, body("content", content, "mood", mood), null); }
+
+	/**
+	 * Ortak dosya yükleme: dosyayı multipart/form-data olarak "file" alanıyla gönderir. Herhangi bir özelliğin
+	 * yükleme uç noktası için kullanılabilir.
+	 */
+	public <T> T upload(String path, java.nio.file.Path file, TypeReference<T> type) {
+		try {
+			var boundary = "----LifePlanner" + java.util.UUID.randomUUID();
+			var name = file.getFileName().toString().replace("\"", "");
+			var head = ("--" + boundary + "\r\nContent-Disposition: form-data; name=\"file\"; filename=\"" + name + "\"\r\n"
+					+ "Content-Type: " + java.util.Objects.requireNonNullElse(java.nio.file.Files.probeContentType(file), "application/octet-stream")
+					+ "\r\n\r\n").getBytes(java.nio.charset.StandardCharsets.UTF_8);
+			var tail = ("\r\n--" + boundary + "--\r\n").getBytes(java.nio.charset.StandardCharsets.UTF_8);
+			var req = HttpRequest.newBuilder(URI.create(base + path)).timeout(Duration.ofSeconds(60))
+					.header("Content-Type", "multipart/form-data; boundary=" + boundary)
+					.POST(BodyPublishers.concat(BodyPublishers.ofByteArray(head), BodyPublishers.ofFile(file), BodyPublishers.ofByteArray(tail)))
+					.build();
+			var res = http.send(req, BodyHandlers.ofString());
+			if (res.statusCode() >= 400) {
+				String detail;
+				try {
+					detail = json.readTree(res.body()).path("detail").asText("Yükleme başarısız: " + res.statusCode());
+				}
+				catch (IOException e) {
+					detail = "Yükleme başarısız: " + res.statusCode();
+				}
+				throw new ApiException(detail);
+			}
+			return json.readValue(res.body(), type);
+		}
+		catch (ConnectException e) {
+			throw new ApiException("Sunucuya bağlanılamadı (" + base + "). Backend çalışıyor mu?");
+		}
+		catch (IOException e) {
+			throw new ApiException("Yükleme hatası: " + e.getMessage());
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new ApiException("Yükleme iptal edildi");
+		}
+	}
 
 	private <T> T send(String method, String path, Object body, TypeReference<T> type) {
 		try {

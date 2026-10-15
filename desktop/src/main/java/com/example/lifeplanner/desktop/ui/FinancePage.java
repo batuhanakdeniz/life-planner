@@ -60,6 +60,14 @@ public class FinancePage extends Page {
 	private final ApiClient api;
 	private final VBox body = new VBox(16);
 	private final List<ToggleButton> viewButtons = new java.util.ArrayList<>();
+	private StatementsPane statementsPane;
+	/** Ödemeler sekmesinde hesap özetleri alt sekmesi mi açık. */
+	private boolean statementsTab;
+	/**
+	 * Her yenilemede artar. Sekme hızla değiştirildiğinde eski isteğin geç gelen yanıtı yeni sekmenin
+	 * içeriğinin üzerine yazmasın diye yalnızca en son isteğin yanıtı çizilir.
+	 */
+	private int generation;
 	private View view = View.PORTFOLIO;
 	private Long tradeFilter;
 	private Trade editingTrade;
@@ -99,13 +107,63 @@ public class FinancePage extends Page {
 
 	@Override
 	public void refresh() {
+		int gen = ++generation;
 		switch (view) {
 			case PORTFOLIO -> Ui.async(() -> new Object[] { api.portfolio(), api.assets(), api.rates(), api.priceStatus() },
-					r -> renderPortfolio((Portfolio) r[0], cast(r[1]), cast(r[2]), (PriceStatus) r[3]));
+					r -> {
+						if (gen == generation) {
+							renderPortfolio((Portfolio) r[0], cast(r[1]), cast(r[2]), (PriceStatus) r[3]);
+						}
+					});
 			case TRADES -> Ui.async(() -> new Object[] { api.assets(), api.trades(tradeFilter), api.rates() },
-					r -> renderTrades(cast(r[0]), cast(r[1]), cast(r[2])));
-			case PAYMENTS -> Ui.async(api::payments, this::renderPayments);
+					r -> {
+						if (gen == generation) {
+							renderTrades(cast(r[0]), cast(r[1]), cast(r[2]));
+						}
+					});
+			case PAYMENTS -> {
+				if (statementsTab) {
+					if (statementsPane == null) {
+						statementsPane = new StatementsPane(api);
+					}
+					body.getChildren().setAll(paymentsTabs(), statementsPane);
+					statementsPane.refresh();
+				}
+				else {
+					Ui.async(api::payments, o -> {
+						if (gen == generation) {
+							renderPayments(o);
+						}
+					});
+				}
+			}
 		}
+	}
+
+	/** Ödemeler sekmesinin "Düzenli / Hesap özetleri" alt sekmeleri. */
+	private Node paymentsTabs() {
+		var group = new ToggleGroup();
+		var bar = new HBox();
+		bar.getStyleClass().add("toggle-group-bar");
+		bar.setMaxWidth(Region.USE_PREF_SIZE);
+		for (var entry : List.of(Map.entry(false, "Düzenli"), Map.entry(true, "Hesap özetleri"))) {
+			var b = new ToggleButton(entry.getValue());
+			b.getStyleClass().add("segment");
+			b.setToggleGroup(group);
+			b.setSelected(entry.getKey() == statementsTab);
+			b.setOnAction(e -> {
+				b.setSelected(true);
+				showPaymentsTab(entry.getKey());
+			});
+			bar.getChildren().add(b);
+		}
+		return bar;
+	}
+
+	/** Ödemeler sekmesinde alt sekme seçer (true = hesap özetleri). */
+	public void showPaymentsTab(boolean statements) {
+		statementsTab = statements;
+		refresh();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -696,7 +754,7 @@ public class FinancePage extends Page {
 			row.getStyleClass().add("item");
 			recent.getChildren().add(row);
 		});
-		body.getChildren().setAll(stats, list, recent);
+		body.getChildren().setAll(paymentsTabs(), stats, list, recent);
 	}
 
 	/** Ödeme satırı; Bugün ekranı ve mini mod da kullanır. */

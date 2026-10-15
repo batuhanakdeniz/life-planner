@@ -135,4 +135,39 @@ public final class Models {
 
 	public record ProjectDetail(ProjectSummary summary, List<ProjectDay> daily) {
 	}
+
+	// ---------- Hesap özetleri ----------
+	public record StatementSummary(Long id, String bank, boolean experimental, String cardLast4, LocalDate periodEnd,
+			LocalDate dueDate, BigDecimal totalDue, BigDecimal spending, BigDecimal payments, int transactionCount,
+			int unclassifiedCount, String fileName, Long fileId, java.time.Instant uploadedAt, boolean duplicate) {
+	}
+
+	public record TotalsCheck(BigDecimal parsed, BigDecimal onStatement, boolean matches) {
+	}
+
+	public record CategoryShare(Long categoryId, String name, String color, BigDecimal amount, BigDecimal percent, int count) {
+	}
+
+	public record InstallmentView(Long transactionId, String merchant, LocalDate purchaseDate, int installmentNo,
+			int installmentCount, BigDecimal monthly, BigDecimal purchaseTotal, BigDecimal remainingAmount,
+			int remainingInstallments, LocalDate endsIn, Long categoryId) {
+	}
+
+	public record Installments(List<InstallmentView> items, BigDecimal nextMonthTotal, BigDecimal remainingTotal, int active) {
+	}
+
+	public record StatementTx(Long id, LocalDate date, String merchant, String description, BigDecimal amount, String kind,
+			Integer installmentNo, Integer installmentCount, BigDecimal foreignAmount, String foreignCurrency, Long categoryId,
+			String categorySource, String rulePattern, String suggestedPattern) {
+	}
+
+	public record StatementDetail(StatementSummary summary, List<String> warnings, TotalsCheck check,
+			List<CategoryShare> breakdown, Installments installments, List<StatementTx> transactions) {
+	}
+
+	public record SpendingCategory(Long id, String name, String color, long transactionCount) {
+	}
+
+	public record CategoryRule(Long id, String pattern, Long categoryId, String categoryName, long matches) {
+	}
 }

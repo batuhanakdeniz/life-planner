@@ -72,6 +72,14 @@ public class MainView extends BorderPane {
 				.ifPresent(f -> f.showView(index));
 	}
 
+	/** Ekran görüntüsü modu için: Finans → Ödemeler → Hesap özetleri. */
+	public void showStatements() {
+		pages.stream().filter(FinancePage.class::isInstance).map(FinancePage.class::cast).findFirst().ifPresent(f -> {
+			f.showView(2);
+			f.showPaymentsTab(true);
+		});
+	}
+
 	/** Ekran görüntüsü modu için içeriği kaydırır (0 = üst, 1 = alt). */
 	public void scrollContent(double v) {
 		content.setVvalue(v);

@@ -205,6 +205,13 @@ public class LifePlannerApp extends Application {
 		steps.add(() -> save(dir, "finance-trades"));
 		steps.add(() -> main.showFinanceView(2));
 		steps.add(() -> save(dir, "finance-payments"));
+		steps.add(() -> {
+			main.show(5); // Finans
+			main.showStatements();
+		});
+		steps.add(() -> save(dir, "finance-statements"));
+		steps.add(() -> main.scrollContent(0.45));
+		steps.add(() -> save(dir, "finance-statements-2"));
 		steps.add(() -> main.showFinanceView(0));
 		steps.add(this::enterMini);
 		steps.add(() -> save(dir, "mini"));

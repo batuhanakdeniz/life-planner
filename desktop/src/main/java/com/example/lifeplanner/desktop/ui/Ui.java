@@ -83,6 +83,26 @@ public final class Ui {
 		}));
 	}
 
+	/** Hata durumunda uyarı gösterip ayrıca {@code onFailure}'ı çalıştırır (ör. "yükleniyor" durumunu geri almak için). */
+	public static <T> void async(Callable<T> work, Consumer<T> onSuccess, Runnable onFailure) {
+		CompletableFuture.supplyAsync(() -> {
+			try {
+				return work.call();
+			}
+			catch (Exception e) {
+				throw new CompletionException(e);
+			}
+		}, IO).whenComplete((result, ex) -> Platform.runLater(() -> {
+			if (ex != null) {
+				onFailure.run();
+				error(ex instanceof CompletionException && ex.getCause() != null ? ex.getCause() : ex);
+			}
+			else {
+				onSuccess.accept(result);
+			}
+		}));
+	}
+
 	/** Sonuç döndürmeyen API çağrısı, ardından {@code then} çalışır (genelde yenileme). */
 	public static void run(ThrowingRunnable work, Runnable then) {
 		async(() -> {
