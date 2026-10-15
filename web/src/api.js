@@ -16,6 +16,18 @@ async function request(method, path, body) {
   return res.json()
 }
 
+/** Ortak dosya yükleme: multipart/form-data olarak "file" alanıyla gönderir. */
+export async function upload(path, file) {
+  const form = new FormData()
+  form.append('file', file)
+  const res = await fetch(`/api${path}`, { method: 'POST', body: form })
+  if (!res.ok) {
+    const problem = await res.json().catch(() => ({}))
+    throw new Error(problem.detail || (res.status === 413 ? 'Dosya çok büyük (en fazla 20 MB)' : `Yükleme başarısız: ${res.status}`))
+  }
+  return res.json()
+}
+
 const get = (p) => request('GET', p)
 const post = (p, b) => request('POST', p, b)
 const put = (p, b) => request('PUT', p, b)
@@ -70,6 +82,17 @@ export const api = {
   createPayment: (p) => post('/finance/payments', p),
   updatePayment: (id, p) => put(`/finance/payments/${id}`, p),
   deletePayment: (id) => del(`/finance/payments/${id}`),
+  // Hesap özetleri
+  uploadStatement: (file) => upload('/finance/statements', file),
+  statements: () => get('/finance/statements'),
+  statement: (id) => get(`/finance/statements/${id}`),
+  deleteStatement: (id) => del(`/finance/statements/${id}`),
+  setTransactionCategory: (id, body) => put(`/finance/statements/transactions/${id}/category`, body),
+  spendingCategories: () => get('/finance/spending-categories'),
+  createSpendingCategory: (c) => post('/finance/spending-categories', c),
+  categoryRules: () => get('/finance/category-rules'),
+  updateCategoryRule: (id, r) => put(`/finance/category-rules/${id}`, r),
+  deleteCategoryRule: (id) => del(`/finance/category-rules/${id}`),
   payPayment: (id, body) => post(`/finance/payments/${id}/pay`, body ?? {}),
   undoPayment: (logId) => del(`/finance/payments/logs/${logId}`),
 

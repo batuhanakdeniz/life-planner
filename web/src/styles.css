@@ -377,3 +377,32 @@ td.streak { text-align: center; }
 .chart { display: block; }
 .chart-label { fill: var(--muted); font-size: 12px; }
 .metrics-table td:first-child { color: var(--muted); }
+
+/* --- Ortak dosya yükleme --- */
+.file-drop { border: 2px dashed var(--border); border-radius: var(--radius); padding: 18px; text-align: center; cursor: pointer; background: var(--surface); transition: border-color .15s, background .15s; }
+.file-drop:hover, .file-drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.file-drop.busy { cursor: progress; opacity: .8; }
+.file-drop-icon { font-size: 26px; }
+.file-drop-label { font-weight: 600; margin: 4px 0; }
+
+/* --- Hesap özetleri --- */
+.sub-tabs { display: inline-flex; margin-bottom: 16px; }
+.statement-top { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; margin-bottom: 16px; align-items: stretch; }
+@media (max-width: 900px) { .statement-top { grid-template-columns: 1fr; } }
+.statement-picker { display: flex; flex-direction: column; gap: 8px; justify-content: center; }
+.statement-picker select { width: 100%; }
+.notice { background: rgba(74, 222, 128, .12); color: var(--success); padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; cursor: pointer; }
+.warn-box { background: rgba(251, 191, 36, .12); color: var(--warn); padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; display: grid; gap: 4px; font-size: 14px; }
+.statement-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+@media (max-width: 1100px) { .statement-grid { grid-template-columns: minmax(0, 1fr); } }
+.statement-grid .donut-card { grid-template-columns: 1fr; justify-items: center; }
+.legend li.clickable { cursor: pointer; border-radius: 6px; padding-left: 4px; padding-right: 4px; }
+.legend li.clickable:hover, .legend li.active { background: var(--accent-soft); }
+.stat.clickable { cursor: pointer; }
+.stat .value.warn { color: var(--warn); }
+.stat .value.pos { color: var(--success); }
+.done-row td { opacity: .5; }
+.tx-table select { max-width: 200px; }
+.edit-row td { background: var(--accent-soft); }
+.edit-row input[type=checkbox] { width: 16px; height: 16px; }
+code { background: var(--surface-2); padding: 1px 6px; border-radius: 4px; font-size: 13px; }

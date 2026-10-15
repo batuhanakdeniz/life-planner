@@ -48,6 +48,7 @@ Masaüstü uygulamasının API adresi için `LIFEPLANNER_API` kullanılır (vars
 | **Bülten** | Takip edilen YouTube kanallarının günlük özeti: üstte "Günün özeti", altında katlanır kanal kartları; videoda önemli noktalar, zaman damgalı bölümler, kişi/şirket/rakamlar | `/api/bulletins`, `/api/bulletins/channels` |
 | **Projeler** | Projelerin özet metrikleri: toplam aktif kullanıcı, MAU, MRR, sağlık; proje kartlarında 30 günlük grafik ve sağlık sebebi; tıklanınca detay paneli | `/api/projects`, `/api/projects/{kod}`, `/api/projects/catalog` |
 | **Finans · Ödemeler** | Kira, fatura, abonelik; "ödendi" + geri al, aylık sabit yük, Bugün ekranı ve bildirimlerde gösterim | `/api/finance/payments`, `/api/finance/payments/{id}/pay` |
+| **Finans · Hesap özetleri** | Kredi kartı ekstresi (PDF) yükleme; işlemler sınıflara ayrılır, harcama dağılımı, taksitler ve kalan borç; sınıf değiştirilip kural olarak hatırlanır | `/api/finance/statements`, `/api/finance/spending-categories`, `/api/finance/category-rules` |
 
 ### Masaüstüne özel
 
@@ -86,6 +87,15 @@ Masaüstü uygulamasının API adresi için `LIFEPLANNER_API` kullanılır (vars
 **Kanalları düzenleme:** Obsidian'da `Bülten/Kanallar.md` tablosu ya da veritabanındaki `bulletin_channels` tablosu. İkisi iki yönlü senkron (en geç 5 dk). Varsayılan tarama aralığı her kanal için dünkü 12:00 → bugün 12:00 (Türkiye saati); kanal başına `Kesim` ve `Geriye (saat)` sütunlarıyla değiştirilebilir.
 
 Gereken: `brew install yt-dlp`. Kasa yolu `LIFEPLANNER_VAULT` ile değiştirilebilir.
+
+### Hesap özetleri nasıl çalışır
+
+- **Desteklenen bankalar:** Yapı Kredi (World) gerçek bir ekstreyle doğrulandı. İş Bankası (Maximum) **deneysel**; genel "tarih açıklama tutar" kalıbıyla okunur. Bilinmeyen bankalar da aynı kalıpla denenir.
+- **Okuma kontrolü:** okunan işlemlerin toplamı ekstredeki dönem borcuyla karşılaştırılır; tutmazsa uyarı gösterilir.
+- **Sınıflandırma:** açıklamada geçen anahtar kelimelere göre (ör. `MIGROS` → Market). Bir işlemin sınıfını değiştirip "bundan sonra" dersen kural kaydedilir ve tüm ekstrelerde uygulanır. Senin kuralların hazır kurallardan önce gelir; birden çok kural uyarsa en uzun eşleşme kazanır.
+- **Dosyalar** depo dışında, `~/.lifeplanner/uploads` altında tutulur (`LIFEPLANNER_UPLOADS` ile değiştirilebilir). Aynı dosya iki kez yüklenirse mevcut kayıt açılır.
+- **Ortak yükleme altyapısı:** `common/upload` (`UploadService`, `DocumentText`) ve web'de `FileDrop` bileşeni başka özellikler için de kullanılabilir.
+- Yeni bir banka eklemek için `StatementParser` arayüzünün yeni bir uygulaması yazılır.
 
 ### Projeler nasıl çalışır
 

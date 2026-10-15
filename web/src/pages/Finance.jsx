@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import PortfolioView from './finance/PortfolioView.jsx'
 import TradesView from './finance/TradesView.jsx'
-import PaymentsView from './finance/PaymentsView.jsx'
+import PaymentsTabs from './finance/PaymentsTabs.jsx'
 
 const VIEWS = [
   { id: 'portfolio', label: '◔ Portföy', component: PortfolioView },
   { id: 'trades', label: '⇄ İşlemler', component: TradesView },
-  { id: 'payments', label: '🗓 Ödemeler', component: PaymentsView },
+  { id: 'payments', label: '🗓 Ödemeler', component: PaymentsTabs },
 ]
 
 export default function Finance() {
