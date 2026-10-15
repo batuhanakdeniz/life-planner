@@ -347,3 +347,33 @@ td.streak { text-align: center; }
 .chapters { list-style: none; padding-left: 0 !important; }
 .ts { font-variant-numeric: tabular-nums; color: var(--accent-2); margin-right: 6px; }
 .mentions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; font-size: 13px; }
+
+/* --- Projeler --- */
+.project-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.project-card { cursor: pointer; transition: border-color .15s, transform .15s; }
+.project-card:hover { border-color: var(--accent); }
+.project-card.selected { border-color: var(--accent); box-shadow: var(--glow); }
+.project-card.health-warn { border-color: color-mix(in srgb, var(--warn) 45%, var(--border)); }
+.project-card.health-down { border-color: color-mix(in srgb, var(--danger) 55%, var(--border)); }
+.health { font-size: 11px; padding: 2px 9px; border-radius: 99px; font-weight: 600; }
+.health.ok { background: rgba(74, 222, 128, .15); color: var(--success); }
+.health.warn { background: rgba(251, 191, 36, .15); color: var(--warn); }
+.health.down { background: rgba(248, 113, 113, .18); color: var(--danger); }
+.big-num { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.kv { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+.kv div { font-size: 12px; color: var(--muted); }
+.kv b { display: block; font-size: 14px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+.kv b.warn { color: var(--warn); }
+.kv b.neg { color: var(--danger); }
+.reason { font-size: 12px; margin: 10px 0 0; }
+.reason.warn, .reasons.warn { color: var(--warn); }
+.reason.down, .reasons.down { color: var(--danger); }
+.reasons { margin: 10px 0 0; padding-left: 18px; font-size: 13px; }
+.dash-link { display: inline-block; margin-top: 10px; font-size: 13px; color: var(--accent-2); }
+.project-detail { margin-top: 16px; }
+.detail-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 16px 0; }
+.detail-charts > div { min-width: 0; }
+.detail-charts h3 { font-size: 13px; color: var(--muted); font-weight: 600; margin: 0 0 6px; }
+.chart { display: block; }
+.chart-label { fill: var(--muted); font-size: 12px; }
+.metrics-table td:first-child { color: var(--muted); }

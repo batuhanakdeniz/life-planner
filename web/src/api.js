@@ -73,6 +73,10 @@ export const api = {
   payPayment: (id, body) => post(`/finance/payments/${id}/pay`, body ?? {}),
   undoPayment: (logId) => del(`/finance/payments/logs/${logId}`),
 
+  // --- Projeler ---
+  projects: () => get('/projects'),
+  project: (slug) => get(`/projects/${encodeURIComponent(slug)}`),
+
   // --- Bülten ---
   bulletin: (date) => get(`/bulletins${date ? `?date=${date}` : ''}`),
   bulletinDates: () => get('/bulletins/dates'),

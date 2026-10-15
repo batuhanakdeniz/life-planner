@@ -28,6 +28,3 @@ interface ChannelDigestRepository extends JpaRepository<ChannelDigest, Long> {
 
 	List<ChannelDigest> findByChannelId(Long channelId);
 }
-
-interface ChannelSyncStateRepository extends JpaRepository<ChannelSyncState, Long> {
-}

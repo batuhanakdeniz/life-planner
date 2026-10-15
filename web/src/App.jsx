@@ -6,6 +6,7 @@ import Goals from './pages/Goals.jsx'
 import Journal from './pages/Journal.jsx'
 import Finance from './pages/Finance.jsx'
 import Bulletin from './pages/Bulletin.jsx'
+import Projects from './pages/Projects.jsx'
 
 const PAGES = [
   { id: 'today', icon: '☀️', label: 'Bugün', component: Today },
@@ -15,6 +16,7 @@ const PAGES = [
   { id: 'journal', icon: '📓', label: 'Günlük', component: Journal },
   { id: 'finance', icon: '💰', label: 'Finans', component: Finance },
   { id: 'bulletin', icon: '📰', label: 'Bülten', component: Bulletin },
+  { id: 'projects', icon: '🚀', label: 'Projeler', component: Projects },
 ]
 
 function useTheme() {

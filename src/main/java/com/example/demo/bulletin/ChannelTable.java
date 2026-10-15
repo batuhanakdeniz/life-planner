@@ -3,10 +3,11 @@ package com.example.demo.bulletin;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
+
+import com.example.demo.common.vault.MarkdownTables;
+import com.example.demo.common.vault.VaultTableSync;
 
 /** Kanallar.md içindeki markdown tablosunu okur ve yazar. */
 final class ChannelTable {
@@ -38,7 +39,7 @@ final class ChannelTable {
 		sb.append("| Ad | Kanal | Aktif | Kesim | Geriye (saat) |\n");
 		sb.append("|---|---|---|---|---|\n");
 		for (var r : rows) {
-			sb.append("| ").append(escape(r.name())).append(" | ").append(r.handle()).append(" | ")
+			sb.append("| ").append(MarkdownTables.escape(r.name())).append(" | ").append(r.handle()).append(" | ")
 					.append(r.active() ? "evet" : "hayır").append(" | ")
 					.append(String.format("%02d:%02d", r.cutoff().getHour(), r.cutoff().getMinute())).append(" | ")
 					.append(r.lookbackHours()).append(" |\n");
@@ -49,29 +50,14 @@ final class ChannelTable {
 	static Parsed parse(String markdown) {
 		var rows = new ArrayList<Row>();
 		var warnings = new ArrayList<String>();
-		boolean inTable = false;
-		for (var line : markdown.split("\\R")) {
-			var t = line.trim();
-			if (!t.startsWith("|")) {
-				inTable = false;
-				continue;
-			}
-			var cells = splitRow(t);
-			if (!inTable) {
-				// Başlık satırı: "Kanal" sütunu olan ilk tablo
-				inTable = cells.stream().anyMatch(c -> c.equalsIgnoreCase("Kanal"));
-				continue;
-			}
-			if (cells.stream().allMatch(c -> c.matches(":?-+:?"))) {
-				continue; // ayraç satırı
-			}
+		for (var cells : MarkdownTables.rows(markdown, "Kanal")) {
 			if (cells.size() < 2 || cells.get(1).isBlank()) {
 				continue;
 			}
 			try {
 				var name = cells.get(0).isBlank() ? cells.get(1) : cells.get(0);
 				var handle = BulletinService.normalizeHandle(cells.get(1));
-				boolean active = cells.size() < 3 || parseBool(cells.get(2));
+				boolean active = cells.size() < 3 || MarkdownTables.parseBool(cells.get(2));
 				var cutoff = cells.size() < 4 || cells.get(3).isBlank() ? LocalTime.NOON : parseTime(cells.get(3));
 				int lookback = cells.size() < 5 || cells.get(4).isBlank() ? 24 : Integer.parseInt(cells.get(4).trim());
 				if (lookback < 1 || lookback > 168) {
@@ -80,7 +66,7 @@ final class ChannelTable {
 				rows.add(new Row(name, handle, active, cutoff, lookback));
 			}
 			catch (RuntimeException e) {
-				warnings.add("Okunamayan satır (" + t + "): " + e.getMessage());
+				warnings.add("Okunamayan satır (| " + String.join(" | ", cells) + " |): " + e.getMessage());
 			}
 		}
 		return new Parsed(rows, warnings);
@@ -88,33 +74,11 @@ final class ChannelTable {
 
 	/** Satır kümesinin sıradan bağımsız özeti; hangi tarafın değiştiğini anlamak için. */
 	static String hash(List<Row> rows) {
-		var canonical = new StringBuilder();
-		rows.stream().sorted(Comparator.comparing(Row::key)).forEach(r -> canonical.append(r.key()).append('|').append(r.name())
-				.append('|').append(r.active()).append('|').append(r.cutoff()).append('|').append(r.lookbackHours()).append('\n'));
-		try {
-			var digest = java.security.MessageDigest.getInstance("SHA-256").digest(canonical.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
-			return HexFormat.of().formatHex(digest);
-		}
-		catch (java.security.NoSuchAlgorithmException e) {
-			throw new IllegalStateException(e);
-		}
+		return VaultTableSync.hashOf(rows.stream().map(ChannelTable::canonical).toList());
 	}
 
-	private static List<String> splitRow(String line) {
-		var inner = line.substring(1, line.endsWith("|") ? line.length() - 1 : line.length());
-		var cells = new ArrayList<String>();
-		for (var c : inner.split("(?<!\\\\)\\|", -1)) {
-			cells.add(c.trim().replace("\\|", "|"));
-		}
-		return cells;
-	}
-
-	private static boolean parseBool(String s) {
-		return switch (s.trim().toLowerCase(Locale.forLanguageTag("tr"))) {
-			case "evet", "e", "true", "1", "aktif", "açık", "x", "✓", "" -> true;
-			case "hayır", "hayir", "h", "false", "0", "pasif", "kapalı" -> false;
-			default -> throw new IllegalArgumentException("Aktif sütunu 'evet' ya da 'hayır' olmalı");
-		};
+	static String canonical(Row r) {
+		return r.key() + '|' + r.name() + '|' + r.active() + '|' + r.cutoff() + '|' + r.lookbackHours();
 	}
 
 	private static LocalTime parseTime(String s) {
@@ -125,9 +89,5 @@ final class ChannelTable {
 		catch (DateTimeParseException e) {
 			throw new IllegalArgumentException("Kesim saati SS:DD biçiminde olmalı (ör. 12:00)");
 		}
-	}
-
-	private static String escape(String s) {
-		return s.replace("|", "\\|");
 	}
 }
