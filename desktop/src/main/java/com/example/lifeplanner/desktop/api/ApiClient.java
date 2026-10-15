@@ -119,6 +119,13 @@ public class ApiClient {
 	public void payPayment(long id) { send("POST", "/finance/payments/" + id + "/pay", body(), null); }
 	public void undoPayment(long logId) { send("DELETE", "/finance/payments/logs/" + logId, null, null); }
 
+	// --- Projeler ---
+	public Models.ProjectsOverview projects() { return send("GET", "/projects", null, new TypeReference<Models.ProjectsOverview>() { }); }
+	public Models.ProjectDetail project(String slug) {
+		return send("GET", "/projects/" + java.net.URLEncoder.encode(slug, java.nio.charset.StandardCharsets.UTF_8), null,
+				new TypeReference<Models.ProjectDetail>() { });
+	}
+
 	// --- Bülten ---
 	/** Tarih null ise en son bülten; hiç yoksa null. */
 	public Models.Bulletin bulletin(LocalDate date) {

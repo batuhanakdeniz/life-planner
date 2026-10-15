@@ -46,6 +46,7 @@ Masaüstü uygulamasının API adresi için `LIFEPLANNER_API` kullanılır (vars
 | **Finans · Portföy** | Toplam değer ₺/$, gerçekleşen/gerçekleşmemiş kâr-zarar, halka grafikte dağılım, varlık tablosu, kur ve fiyat girişi | `/api/finance/portfolio`, `/api/finance/assets`, `/api/finance/rates/{USD\|EUR}` |
 | **Finans · İşlemler** | Döviz, altın, hisse/fon alım-satımları; işlem günündeki USD/TRY kuru (bilinmiyorsa ≈ güncel kur) | `/api/finance/trades` |
 | **Bülten** | Takip edilen YouTube kanallarının günlük özeti: üstte "Günün özeti", altında katlanır kanal kartları; videoda önemli noktalar, zaman damgalı bölümler, kişi/şirket/rakamlar | `/api/bulletins`, `/api/bulletins/channels` |
+| **Projeler** | Projelerin özet metrikleri: toplam aktif kullanıcı, MAU, MRR, sağlık; proje kartlarında 30 günlük grafik ve sağlık sebebi; tıklanınca detay paneli | `/api/projects`, `/api/projects/{kod}`, `/api/projects/catalog` |
 | **Finans · Ödemeler** | Kira, fatura, abonelik; "ödendi" + geri al, aylık sabit yük, Bugün ekranı ve bildirimlerde gösterim | `/api/finance/payments`, `/api/finance/payments/{id}/pay` |
 
 ### Masaüstüne özel
@@ -85,6 +86,13 @@ Masaüstü uygulamasının API adresi için `LIFEPLANNER_API` kullanılır (vars
 **Kanalları düzenleme:** Obsidian'da `Bülten/Kanallar.md` tablosu ya da veritabanındaki `bulletin_channels` tablosu. İkisi iki yönlü senkron (en geç 5 dk). Varsayılan tarama aralığı her kanal için dünkü 12:00 → bugün 12:00 (Türkiye saati); kanal başına `Kesim` ve `Geriye (saat)` sütunlarıyla değiştirilebilir.
 
 Gereken: `brew install yt-dlp`. Kasa yolu `LIFEPLANNER_VAULT` ile değiştirilebilir.
+
+### Projeler nasıl çalışır
+
+- Proje listesi (ad, kod, açıklama, platform, dashboard bağlantısı) Obsidian'daki `Projeler/Projeler.md` ile iki yönlü senkron. İlk açılışta 3 örnek proje eklenir.
+- **Metrikler şimdilik örnek (sahte) veridir** ve sayfada "örnek veri" etiketiyle gösterilir. Değerler proje kodu ve güne göre üretilir; aynı gün içinde değişmez.
+- Gerçek veriye geçmek için `ProjectMetricsSource` arayüzünün yeni bir uygulaması yazılır (ör. analitik aracı, ödeme sağlayıcısı, uptime servisi) ve projenin `metrics_source` alanı ona çevrilir.
+- Sağlık eşikleri: hata oranı > %1, 30 günlük uptime < %99,5 ya da 10+ açık hata → **Uyarı**; uptime < %98 → **Kesinti**.
 
 ## Notlar
 

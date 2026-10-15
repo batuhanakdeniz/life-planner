@@ -84,8 +84,15 @@ public class LifePlannerApp extends Application {
 	/**
 	 * macOS Dock ikonu. Uygulama bir .app paketi olarak değil düz Java süreci olarak çalıştığında
 	 * varsayılan Java ikonu görünür; Taskbar API ile logo atanır. Desteklenmeyen ortamlarda sessizce geçilir.
+	 * <p>
+	 * AWT'nin kendi iş parçacığında, asenkron çalışır: JavaFX iş parçacığından senkron çağrıldığında macOS'ta
+	 * AWT başlatılırken JavaFX ile kilitlenir ve uygulama açılışta donar.
 	 */
 	private void setDockIcon() {
+		java.awt.EventQueue.invokeLater(this::applyDockIcon);
+	}
+
+	private void applyDockIcon() {
 		try {
 			if (!java.awt.Taskbar.isTaskbarSupported()) {
 				return;
@@ -185,12 +192,15 @@ public class LifePlannerApp extends Application {
 	private void takeSnapshots(File dir) {
 		dir.mkdirs();
 		List<Runnable> steps = new ArrayList<>();
-		String[] names = { "today", "tasks", "habits", "goals", "journal", "finance", "bulletin" };
+		String[] names = { "today", "tasks", "habits", "goals", "journal", "finance", "bulletin", "projects" };
 		for (int i = 0; i < main.pageCount(); i++) {
 			int index = i;
 			steps.add(() -> main.show(index));
 			steps.add(() -> save(dir, names[index]));
 		}
+		steps.add(() -> main.show(names.length - 1)); // Projeler: detay paneli yüklendikten sonra en alta kaydır
+		steps.add(() -> main.scrollContent(1));
+		steps.add(() -> save(dir, "projects-detail"));
 		steps.add(() -> main.showFinanceView(1));
 		steps.add(() -> save(dir, "finance-trades"));
 		steps.add(() -> main.showFinanceView(2));

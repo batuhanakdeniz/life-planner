@@ -115,4 +115,24 @@ public final class Models {
 	public record BulletinChannel(Long id, String name, String handle, String url, boolean active, java.time.LocalTime cutoffTime,
 			int lookbackHours) {
 	}
+
+	// ---------- Projeler ----------
+	public record ProjectSummary(String slug, String name, String description, String platform, String dashboardUrl,
+			String health, List<String> healthReasons, long activeUsers, Double activeUsersChangePct, long mau,
+			Double mauChangePct, long signups7d, BigDecimal mrr, Double mrrChangePct, double uptime30d, int openIssues,
+			double errorRate24h, java.time.Instant lastDeployAt, List<Long> sparkline, boolean mock) {
+	}
+
+	public record ProjectTotals(long activeUsers, Double activeUsersChangePct, long mau, BigDecimal mrr, int projects,
+			int healthy, int warning, int down) {
+	}
+
+	public record ProjectsOverview(java.time.Instant generatedAt, ProjectTotals totals, List<ProjectSummary> projects) {
+	}
+
+	public record ProjectDay(LocalDate date, long activeUsers, long signups, BigDecimal revenue) {
+	}
+
+	public record ProjectDetail(ProjectSummary summary, List<ProjectDay> daily) {
+	}
 }

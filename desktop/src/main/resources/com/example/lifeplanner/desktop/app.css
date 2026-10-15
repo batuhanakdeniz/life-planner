@@ -201,3 +201,18 @@
 .video-title { -fx-font-weight: bold; -fx-font-size: 13px; }
 .hyperlink { -fx-text-fill: -accent-2; -fx-border-color: transparent; -fx-padding: 0; }
 .label { -fx-line-spacing: 2; }
+
+/* --- Projeler --- */
+.project-card { -fx-cursor: hand; }
+.project-card:hover, .project-card.selected { -fx-border-color: -accent; }
+.project-card.project-warning { -fx-border-color: rgba(251,191,36,0.5); }
+.project-card.project-down { -fx-border-color: rgba(248,113,113,0.6); }
+.project-card.selected { -fx-effect: dropshadow(gaussian, rgba(167,139,250,0.35), 16, 0, 0, 0); }
+.health { -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 2 9; -fx-background-radius: 99; }
+.health-ok { -fx-background-color: rgba(74,222,128,0.15); -fx-text-fill: -success; }
+.health-warning { -fx-background-color: rgba(251,191,36,0.15); -fx-text-fill: -warn; }
+.health-down { -fx-background-color: rgba(248,113,113,0.18); -fx-text-fill: -danger; }
+.big-num { -fx-font-size: 26px; -fx-font-weight: bold; }
+.kv-value { -fx-font-size: 14px; -fx-font-weight: bold; }
+.kv-value.warn { -fx-text-fill: -warn; }
+.kv-value.neg { -fx-text-fill: -danger; }

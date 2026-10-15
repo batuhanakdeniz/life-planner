@@ -23,8 +23,8 @@ public class MainView extends BorderPane {
 	private int current;
 
 	public MainView(ApiClient api, Actions actions) {
-		pages = List.of(new TodayPage(api), new TasksPage(api), new HabitsPage(api), new GoalsPage(api), new JournalPage(api), new FinancePage(api), new BulletinPage(api));
-		String[] labels = { "☀️  Bugün", "✓  Görevler", "🔁  Alışkanlıklar", "🎯  Hedefler", "📓  Günlük", "💰  Finans", "📰  Bülten" };
+		pages = List.of(new TodayPage(api), new TasksPage(api), new HabitsPage(api), new GoalsPage(api), new JournalPage(api), new FinancePage(api), new BulletinPage(api), new ProjectsPage(api));
+		String[] labels = { "☀️  Bugün", "✓  Görevler", "🔁  Alışkanlıklar", "🎯  Hedefler", "📓  Günlük", "💰  Finans", "📰  Bülten", "🚀  Projeler" };
 
 		var group = new ToggleGroup();
 		var nav = new VBox(2);
@@ -70,6 +70,11 @@ public class MainView extends BorderPane {
 	public void showFinanceView(int index) {
 		pages.stream().filter(FinancePage.class::isInstance).map(FinancePage.class::cast).findFirst()
 				.ifPresent(f -> f.showView(index));
+	}
+
+	/** Ekran görüntüsü modu için içeriği kaydırır (0 = üst, 1 = alt). */
+	public void scrollContent(double v) {
+		content.setVvalue(v);
 	}
 
 	public int pageCount() {
