@@ -30,6 +30,7 @@ Finans'ta Ödemeler sekmesi iki alt sekmeye sahip: **Düzenli** ödemeler ve **H
 **Finans**
 - Portföy ortalama maliyet yöntemiyle, her işlem kendi gününün USD/TRY kuruyla hem TL hem $ olarak tutuluyor.
 - Fiyat kaynakları: TCMB (kur), Truncgil (altın/gümüş, alış fiyatı), Yahoo (BIST ve ABD hisseleri). 15 dk'da bir (piyasa saatinde), diğer zamanlarda 3 saatte bir.
+- Altın türleri: Gram, Çeyrek (`ceyrek-altin`) ve Ata lira (`ata-altin`) hazır varlık olarak ekli; Cumhuriyet, Yarım, Tam ve gümüş için de Truncgil eşleşmesi var.
 - Kursuz işlemlerde işlem gününün TCMB kuru otomatik kullanılıyor.
 - Sayı girişi Türkçe: `6.250,50`.
 - Hesap özetleri: Yapı Kredi (World) gerçek ekstreyle doğrulandı. İş Bankası (Maximum) **deneysel**, ilk gerçek ekstreyle kontrol edilmeli.

@@ -49,6 +49,7 @@ public class FinancePage extends Page {
 	private static final List<String[]> PRESETS = List.of(
 			new String[] { "GRAM_ALTIN", "Gram altın", "GOLD", "TRY", "gr", "Gram altın" },
 			new String[] { "CEYREK_ALTIN", "Çeyrek altın", "GOLD", "TRY", "adet", "Çeyrek altın" },
+			new String[] { "ATA_LIRA", "Ata lira", "GOLD", "TRY", "adet", "Ata lira" },
 			new String[] { "ONS_ALTIN", "Ons altın", "GOLD", "USD", "ons", "Ons altın" },
 			new String[] { "GUMUS", "Gram gümüş", "GOLD", "TRY", "gr", "Gram gümüş" },
 			new String[] { "USD", "Amerikan doları", "CURRENCY", "TRY", "$", "USD" },

@@ -13,6 +13,7 @@ public final class PriceSourceDefaults {
 	private static final Map<String, String> TRUNCGIL_KEYS = Map.of(
 			"GRAM_ALTIN", "gram-altin",
 			"CEYREK_ALTIN", "ceyrek-altin",
+			"ATA_LIRA", "ata-altin",
 			"YARIM_ALTIN", "yarim-altin",
 			"TAM_ALTIN", "tam-altin",
 			"CUMHURIYET_ALTINI", "cumhuriyet-altini",

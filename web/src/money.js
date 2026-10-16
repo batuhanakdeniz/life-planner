@@ -50,6 +50,7 @@ export const FREQUENCY = { WEEKLY: 'Haftalık', MONTHLY: 'Aylık', YEARLY: 'Yıl
 export const ASSET_PRESETS = [
   { symbol: 'GRAM_ALTIN', name: 'Gram altın', type: 'GOLD', priceCurrency: 'TRY', unit: 'gr' },
   { symbol: 'CEYREK_ALTIN', name: 'Çeyrek altın', type: 'GOLD', priceCurrency: 'TRY', unit: 'adet' },
+  { symbol: 'ATA_LIRA', name: 'Ata lira', type: 'GOLD', priceCurrency: 'TRY', unit: 'adet' },
   { symbol: 'ONS_ALTIN', name: 'Ons altın', type: 'GOLD', priceCurrency: 'USD', unit: 'ons' },
   { symbol: 'GUMUS', name: 'Gram gümüş', type: 'GOLD', priceCurrency: 'TRY', unit: 'gr' },
   { symbol: 'USD', name: 'Amerikan doları', type: 'CURRENCY', priceCurrency: 'TRY', unit: '$' },
